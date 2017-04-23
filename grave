@@ -1,0 +1,118 @@
+============================================================
+== 170415
+============================================================
+
+// testing code. tried to find 2017.txt and reutrn the content
+app.get('/2017.txt', function(req, res) {
+  try {
+    dbx.filesDownload({
+        path: '/notes/2017.txt'
+      })
+      .then(function(data) {
+        try {
+          var s = utf8.decode(data.fileBinary);
+          res.send(s);
+        }
+        catch (e) {
+          console.log('failed to retrieve 2017.txt');
+          console.log(e);
+          res.send(e.message);
+        }
+      });
+  }
+  catch (e) {
+    console.log('request to drpobox failed. reason:');
+    console.log(e);
+  }
+});
+
+============================================================
+== 170417
+============================================================
+
+// -- trashed. reason : not used anymore --
+// Serves flie list. the last of the url is path to the request folder
+app.get('/ajax/list/*', function(req, res) {
+  // debug output
+  // console.log(req.originalUrl);
+  var req_path = req.originalUrl;
+  req_path = req_path.substr(req_path.indexOf('/', '/ajax/list'.length));
+
+  dbx.filesListFolder({
+      path: req_path
+    })
+    .then(function(r) {
+      res.send(r);
+    })
+    .catch(function(e) {
+      console.log(e);
+      res.send(e);
+    });
+
+});
+
+============================================================
+== 170420
+============================================================
+
+// -- trashed reason : the code is valid on server side, but cannot be used on client side.
+var get_note_content = function(dbx, req_path) {
+    return new Promise(function(resolve, reject) {
+        // Start downloading from dropbox
+        // ref : http://dropbox.github.io/dropbox-sdk-js/Dropbox.html#filesDownload__anchor
+        dbx.filesDownload({
+                path: req_path
+            })
+            .then(function(data) {
+                // // debug output
+                // console.log(data);
+                // decode file
+                var s = utf8.decode(data.fileBinary);
+                resolve(data);
+            })
+            .catch(function(e) {
+                reject(e);
+            });
+    });
+}
+
+// -- trashed reason : not needed anymore. left for further reference
+var save_content = function() {
+    // if no file is currently open
+    if (current_file == "") {
+        // ask note name with modal box
+        var form = document.getElementById('myModal');
+        var modal = new Modal(form);
+        form.onokay = function() {
+            var modal_inputs = form.getElementsByClassName('modal_input');
+            // put .txt extension if not present
+            var extension_begin = current_file.lastIndexOf(current_file, '.');
+            if (extension_begin == -1 || current_file.substr(extension_begin) != ".txt") {
+                extension_begin += ".txt";
+            }
+            // set current file name
+            current_file = modal_inputs[0].value;
+            // start saving
+            save_content();
+        }
+        modal.trigger();
+        return;
+    }
+
+    // build url
+    var url = service_url + '/ajax/up/notes/' + current_file;
+    // get data
+    var data = {
+        content: $('#content_view').val()
+    };
+    // send ajax
+    $.ajax({
+        url: url,
+        type: 'POST',
+        data: JSON.stringify(data),
+        contentType: 'application/json',
+        success: function(data) {
+            console.log("success");
+        }
+    });
+};

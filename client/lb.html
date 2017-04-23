@@ -1,0 +1,43 @@
+<html>
+	<head>
+		<title>
+			list box test
+		</title>
+		<style>
+		 	ol {
+		 		list-style:none;
+		 	}
+		 	
+			ol li{
+				background-color:white;
+			}
+			
+			ol .selected{
+				background-color:red;
+			}
+			
+			ol .hidden{
+				display:none;
+			}
+		</style>
+		<script src="/js/jquery.min.js"></script>
+		<script src="/js/listbox.js"></script>
+	</head>
+	<body>
+		<ol>
+			<li> 1 </li>
+			<li class="hidden"> 2 </li>
+			<li class="selected"> 3 </li>
+		</ol>
+		
+		<div id='hi'>
+		</div>
+		<script>
+			listbox.create_list_box_from_data([
+				{ name:'1'},
+				{ name:'2'},
+				{ name:'3'}
+			], $('#hi'));
+		</script>
+	</body>
+</html>

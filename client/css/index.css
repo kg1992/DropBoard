@@ -1,0 +1,105 @@
+body {
+    padding-top: 20px;
+}
+
+.container {
+    width: 100%;
+    border: 1px solid gray;
+}
+
+.sidebar_area {
+    float: left;
+    background-color: rgb(200, 200, 200);
+}
+
+.sidebar_area input {
+    margin: 5px;
+    max-width: 160px;
+}
+
+.sidebar_area span {
+    margin: 5px;
+}
+
+.sidebar_area li {
+    font: Sans-sarif;
+    /*for debug*/
+    /*border: 1px solid gray;*/
+}
+
+.sidebar_area .selected {
+    background-color: rgb(200, 200, 250);
+}
+
+.sidebar_area ol {
+    list-style-type: none;
+}
+
+.content_area {
+    margin-left: 170px;
+    border-left: 1px solid gray;
+    padding: 1em;
+    overflow: hidden;
+}
+
+#content_view{
+    display:none;
+}
+
+.md_view {
+    display: none;
+}
+
+header {
+    padding: 1em;
+    text-align: center;
+    background: black;
+    color: white;
+}
+
+footer {
+    padding: 1em;
+    text-align: center;
+    background: black;
+    color: white;
+}
+
+textarea {
+    height: 100%;
+    width: 100%;
+    -moz-box-sizing: border-box;
+    -webkit-box-sizing: border-box;
+    box-sizing: border-box;
+}
+
+.status_bar {
+    background: rgb(100, 100, 255);
+    min-height: 18px;
+}
+
+div button {
+    margin: 5px;
+}
+
+.menu_area {
+    border-top: 2px black;
+}
+
+#add_button {
+    border: 1px solid black;
+    border-radius: 100%;
+    font-family: Sans-sarif;
+    font-weight: bold;
+    font-size: 1em;
+    background: rgb(200, 200, 255);
+}
+
+a:hover {
+    /* http://stackoverflow.com/questions/2041388/how-to-remove-the-underline-for-anchorslinks */
+    text-decoration: none;
+    cursor: pointer;
+}
+
+#add_name {
+    display: none;
+}
