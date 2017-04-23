@@ -1,0 +1,314 @@
+<!doctype html>
+<html lang="en" ng-app>
+
+<head>
+  <title>DropBoard</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <link rel="stylesheet" href="/css/bootstrap.min.css">
+  <link rel="stylesheet" href="/css/bootstrap-responsive.min.css">
+  <link rel="stylesheet" href="/css/index.css">
+  <link rel="stylesheet" href="/css/index_modal.css">
+  <link rel="stylesheet" href="/css/tocgen.css">
+  <script src="/js/jquery.min.js"></script>
+  <script src="/js/bootstrap.min.js"></script>
+  <script src="/js/Dropbox-sdk.min.js"></script>
+  <script src="/js/utils.js"></script>
+  <script src="/js/markdown.js"></script>
+  <script src="/js/index.js"></script>
+  <script src="/js/listbox.js"></script>
+  <script src="/js/tocgen.js"></script>
+</head>
+
+<body>
+  <div class='container'>
+    <header>
+      <h1>DropBoard</h1>
+    </header>
+    <!-- menu area -->
+    <div class='sidebar_area'>
+      <span>Search: </span> <input id='search_input'></input>
+      <a id="add_button">+</a>
+      <input id="add_name"></input>
+      <nav id="note_list">
+      </nav>
+    </div>
+    <!-- content area -->
+    <article class="content_area">
+      <!-- shows note name (file name) here -->
+      <div id="note_name"></div>
+      <!-- shows content of the note here -->
+      <textarea id="content_view" rows="30" class="boxsizingBorder"></textarea>
+      <div id="md_view">
+      </div>
+      <div class="menu_arae">
+        <!-- Save Button -->
+        <a id='save_button'> Save </a>
+        <a id='sign_in_button' style="display:none"> Sign in </a>
+        <a id='sign_out_button' style="display:none" href='.'> Sign out </a>
+        <a id='trash_button'> Trash </a>
+      </div>
+    </article>
+    <!-- Status_bar -->
+    <div class="status_bar">
+    </div>
+    <!-- The Modal -->
+    <div id="myModal" class="modal">
+      <!-- Modal content -->
+      <div class="modal-content">
+        <span class="close">&times;</span>
+        <p>Note Name?</p>
+        <input class="modal_input" d></input>
+        <button class="okay">Confirm</button>
+      </div>
+    </div>
+
+  </div>
+
+  <footer>
+    (c)2017 이경근
+  </footer>
+  <script>
+    /* global $ */
+    /* global markdown */
+    /* global getExtension */
+    /* global tocgen */
+
+    var lbm;
+    var dbx;
+
+    var writeStatus = function(msg) {
+      if (typeof msg == 'string') {
+        $('.status_bar').text(msg);
+      }
+    };
+
+    var buildMd = function() {
+      var $mdView = $('#md_view');
+      if ($mdView && $mdView.css('display') != 'none') {
+        $mdView.empty();
+
+        var $article = $('<div></div>').html(markdown.toHTML($contentView.val()));
+
+        // Generate Table Of Contents
+        var article = $article.get()[0];
+        var toc = tocgen.generateToc(article, 1, 4);
+        toc.setAttribute("id", "toc");
+
+        // Insert Table Of Contents into document
+        $('<div id="toc_here"></div>')
+          .append(toc)
+          .appendTo($mdView);
+
+        $mdView.append($article);
+      }
+    };
+
+    // http://stackoverflow.com/questions/2823733/textarea-onchange-detection
+    var $contentView = $('#content_view');
+    var onContentViewInput = function() {
+      buildMd();
+    };
+    var area = $contentView.get()[0];
+    if (area.addEventListener) {
+      area.addEventListener('input', onContentViewInput, false);
+    }
+    else if (area.attachEvent) {
+      area.attachEvent('onpropertychange', onContentViewInput);
+    }
+
+    var $si = $('#search_input');
+    var onSearchInput = function() {
+      var $lis = $('#note_list li');
+      $lis.css('display','none');
+      for( var i = 0; i < $lis.length; ++i )
+      {
+        var li = $lis[i];
+        if( li.textContent.toLowerCase().indexOf($si.val()) != -1 )
+          $(li).css('display','block');
+      }
+    };
+    if ($si) {
+      var si = $si.get()[0];
+      if (si.addEventListener) {
+        si.addEventListener('input', onSearchInput);
+      }
+      else if (si.attachEvent) {
+        si.attachEvent('onpropertychange', onSearchInput);
+      }
+    }
+
+    // list notes found in '/Notes' path
+    var refreshNoteList = function(dbx) {
+      if (!dbx) throw "dbx was null ";
+
+      pull_note_list(dbx, "/Notes")
+        .then(function(model) {
+          var entries = model.entries.map(e => {
+            return {
+              name: e.name
+            };
+          });
+          lbm = listbox.create_list_box_from_data(entries, $('#note_list'));
+          lbm.addSelectionChangedHandler(function(model) {
+            // on click, show note content
+            var item = model.getSelectedItems()[0];
+            if (item != null) {
+              var path = item.name;
+              pull_note_content(dbx, /Notes/ + path)
+                .then(function(data) {
+                  var $contentView = $('#content_view');
+                  var $mdView = $('#md_view');
+                  switch (getExtension(path)) {
+                    case ".txt":
+                      $contentView.val(data.content);
+                      $contentView.css('display', 'block');
+                      $mdView.css('display', 'none');
+                      break;
+                    case ".md":
+                      $contentView.val(data.content);
+                      $contentView.css('display', 'block');
+                      $mdView.css('display', 'block');
+                      buildMd();
+                      break;
+                  }
+                })
+                .catch(function(e) {
+                  console.log(e);
+                });
+            }
+          });
+        });
+    };
+
+    var save_selected_note = function() {
+      var selected = lbm.getSelected();
+      var name = selected.name;
+      var path = "/Notes/" + name;
+
+      writeStatus('Saving \'' + name + '\'...');
+
+      push_note_content(dbx, path, $('#content_view').val())
+        .then(function(res) {
+          writeStatus('\'' + name + '\' has been saved.');
+        })
+        .catch(function(e) {
+          writeStatus('Saving \'' + name + '\'...');
+          // // debug log
+          // console.log(e);
+        });
+    }
+
+    // dropbox applicatoin ID
+    var CLIENT_ID = 'x21k12pzkcpb0qa';
+
+    if (isAuthenticated()) {
+      // Create an instance of Dropbox with the access token and use it to
+      // fetch and render the files in the users root directory.
+      dbx = new Dropbox({
+        clientId: CLIENT_ID,
+        accessToken: getAccessTokenFromUrl(),
+      });
+
+      refreshNoteList(dbx);
+
+      $('#save_button').click(save_selected_note);
+
+      // ----------------------------------------
+      // add name input area response
+      $addName = $("#add_name");
+      $addName.on('keyup', function(e) {
+        var name = $addName.val();
+        if (name == "")
+          return;
+        if (e.keyCode == 13) {
+          // http://stackoverflow.com/questions/1531093/how-do-i-get-the-current-date-in-javascript
+          var utc = new Date().toJSON().slice(0, 10).replace(/-/g, '/');
+          push_note_content(dbx, "/Notes/" + name, "new note created at " + utc)
+            .then(function(res) {
+              refreshNoteList(dbx);
+            })
+            .catch(function(e) {
+              console.log(e);
+            });
+          $addName.css('display', 'none');
+        }
+
+        // http://stackoverflow.com/questions/3369593/how-to-detect-escape-key-press-with-javascript-or-jquery
+        else if (e.keyCode == 27) {
+          console.log('user canceled');
+          $addName.css('display', 'none');
+          return;
+        }
+      });
+
+      // ----------------------------------------
+      // add button handler
+      $addButton = $('#add_button');
+      $addButton.on("click", function(e) {
+        $('#add_name').css('display', 'block');
+      });
+
+      // ----------------------------------------
+      // trash button handler
+      $trashButton = $('#trash_button');
+      $trashButton.on('click', function(e) {
+        var selected = lbm.getSelected();
+        var name = selected.name;
+
+        writeStatus('Trashing \'' + name + '\'...');
+
+        push_delete(dbx, "/Notes/" + name)
+          .then(function(data) {
+            $('#content_view').css('display', 'none');
+            $('#md_view').css('display', 'none');
+            refreshNoteList(dbx);
+            writeStatus('\'' + name + '\' has been trashed.');
+          })
+          .catch(function(e) {
+            console.log(e);
+            writeStatus('trashing \'' + name + '\' failed.');
+          });
+      });
+
+      // ----------------------------------------
+      // show sign out button
+      document.getElementById('sign_out_button').style.display = "block";
+
+      // http://stackoverflow.com/questions/93695/best-cross-browser-method-to-capture-ctrls-with-jquery
+      $(window).bind('keydown', function(event) {
+        if (event.ctrlKey || event.metaKey) {
+          switch (String.fromCharCode(event.which).toLowerCase()) {
+            case 's':
+              event.preventDefault();
+              save_selected_note();
+              break;
+              // case 'f':
+              //     event.preventDefault();
+              //     alert('ctrl-f');
+              //     break;
+              // case 'g':
+              //     event.preventDefault();
+              //     alert('ctrl-g');
+              //     break;
+          }
+        }
+      });
+
+    }
+    else {
+      // Set the login anchors href using dbx.getAuthenticationUrl()
+      dbx = new Dropbox({
+        clientId: CLIENT_ID
+      });
+      var authUrl = dbx.getAuthenticationUrl('https://dropbox-app-test-kg1992.c9users.io:8081');
+      var e = document.getElementById('sign_in_button');
+      e.href = authUrl;
+      e.style.display = "block";
+    }
+  </script>
+  <script src="/js/index_modal.js"></script>
+  </div>
+  <!-- container -->
+</body>
+
+</html>

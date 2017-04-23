@@ -1,0 +1,71 @@
+#open ticket
+* move to git
+* must hide access token
+
+* support error message display.
+ - modal is ready, but not complete.
+* convineience
+ - there must be shortcut for 'save'
+* style
+ - 'add note' button looks hedious
+ - sign in, and sign out button must be placed somewhere else
+* support git
+ 
+#closed ticket
+* search feature must be completed.
+
+* md table of contents support
+
+* support status bar message.
+ - now supported by 'writeStatus' function
+
+* support real time md editing
+ - At the moment, every change will cause reevaluation. Might not be efficient.
+
+* style
+ - shouldn't show cursor
+
+* support save button properly
+
+* support remove note.
+
+* support making new note. 
+ - add note button looks hideous.
+ 
+* need to Support md fil
+ - note. tested with 'A Quick Markdown Example.md' file.
+ - having a separte pane parallel may be a good idea.
+
+* Need to implement listbox
+ 
+* Need to enable scrolling when the note list section floods
+  - my theory is, if I contian the note list in a 'max-widthed' container,
+    the last of the note list will be hidden.
+  - or I can fit to the content box.
+  - [http://stackoverflow.com/questions/9707397/making-a-div-vertically-scrollable-using-css]
+    This q&a covers enabling scrolling with css.
+    
+* Need to detect unicode of text file. 
+ [http://blog.wystan.net/2007/08/18/bom-byte-order-mark-problem]
+ this article can be helpful. I will write code that reads first three bytes
+ to detect the unicode encoding
+ I will just give up on this problem and stick to utf-8
+    
+#note
+  - [http://stackoverflow.com/questions/436234/best-approach-to-member-variables-in-object-oriented-javascript]
+    nice article explaining various way to declare memeber variables
+    
+  - [http://www.unexpected-vortices.com/sw/rippledoc/quick-markdown-example.html]
+    a quick markdown example
+    
+#'filesDownload' response sample
+client_modified         :       "2017-04-23T01:27:50Z"
+content_hash            :       "da5a17869c8e704fd063be0fcd1b3e1f0979ec92cb4f94a82a44500abf0a93fb"
+fileBlob                :       Blob
+id                      :       "id:M7IIkTDz6eIAAAAAAAVaaw"
+name                    :       "A Quick Markdown Example.md"
+path_display            :       "/Notes/A Quick Markdown Example.md"
+path_lower              :       "/notes/a quick markdown example.md"
+rev                     :       "c484a049e13e2"
+server_modified         :       "2017-04-23T01:27:51Z"
+size                    :       3557
