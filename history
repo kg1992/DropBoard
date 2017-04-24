@@ -1,17 +1,27 @@
 #open ticket
-* move to git
+
+* supporting treeview
+
 * must hide access token
 
 * support error message display.
  - modal is ready, but not complete.
+ 
 * convineience
- - there must be shortcut for 'save'
+ - there must be shortcut for 'bold' in md editing
+ 
 * style
  - 'add note' button looks hedious
  - sign in, and sign out button must be placed somewhere else
-* support git
+ - add button looks hedious
  
 #closed ticket
+* there must be shortcut for 'save'
+ -> now supported by Ctrl+S.
+
+* move to git
+ -> now hosted on github with domain 'https://github.com/kg1992/DropBoard' at the moment(170424) the project is private
+
 * search feature must be completed.
 
 * md table of contents support
