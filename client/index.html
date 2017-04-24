@@ -15,7 +15,9 @@
   <script src="/js/utils.js"></script>
   <script src="/js/markdown.js"></script>
   <script src="/js/index.js"></script>
+  <script src="/js/arrayExtand.js"></script>
   <script src="/js/listbox.js"></script>
+  <script src="/js/treeview.js"></script>
   <script src="/js/tocgen.js"></script>
 </head>
 
@@ -73,8 +75,12 @@
     /* global getExtension */
     /* global tocgen */
 
-    var lbm;
+    // Dropbox api object
     var dbx;
+    // dropbox applicatoin ID
+    var CLIENT_ID = 'x21k12pzkcpb0qa';
+    // list box model object
+    var lbm;
 
     var writeStatus = function(msg) {
       if (typeof msg == 'string') {
@@ -198,9 +204,6 @@
         });
     }
 
-    // dropbox applicatoin ID
-    var CLIENT_ID = 'x21k12pzkcpb0qa';
-
     if (isAuthenticated()) {
       // Create an instance of Dropbox with the access token and use it to
       // fetch and render the files in the users root directory.
@@ -293,7 +296,7 @@
           }
         }
       });
-
+      treeview.exposedMethod();
     }
     else {
       // Set the login anchors href using dbx.getAuthenticationUrl()
