@@ -12,7 +12,6 @@
   <script src="/js/jquery.min.js"></script>
   <script src="/js/bootstrap.min.js"></script>
   <script src="/js/Dropbox-sdk.min.js"></script>
-  <script src="/js/utils.js"></script>
   <script src="/js/markdown.js"></script>
   <script src="/js/index.js"></script>
   <script src="/js/arrayExtand.js"></script>
@@ -72,8 +71,18 @@
   <script>
     /* global $ */
     /* global markdown */
-    /* global getExtension */
     /* global tocgen */
+    
+    // input argument is string literal of filename.
+    // return value is its extension including the dot character.
+    //        If the filename does not inclde extension, result will be ""
+    function getExtension(filename) {
+        if (filename == null) return "";
+        if (filename == "") return "";
+        var index = filename.lastIndexOf('.');
+        if (index == -1) return "";
+        return filename.substr(index);
+    }
 
     // Dropbox api object
     var dbx;

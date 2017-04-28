@@ -1,5 +1,7 @@
 #open ticket
 
+* support raw view
+
 * custom history
  - [memo]: http://stackoverflow.com/questions/3338642/updating-address-bar-with-new-url-without-hash-or-reloading-the-page
            you found that you can change history without refreshing the entire page.
