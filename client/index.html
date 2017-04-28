@@ -46,7 +46,7 @@
         <!-- Save Button -->
         <a id='save_button'> Save </a>
         <a id='sign_in_button' style="display:none"> Sign in </a>
-        <a id='sign_out_button' style="display:none" href='.'> Sign out </a>
+        <a id='sign_out_button' style="display:none" href="."> Sign out </a>
         <a id='trash_button'> Trash </a>
       </div>
     </article>
@@ -107,6 +107,10 @@
 
         $mdView.append($article);
       }
+    };
+    
+    var isLocalStorageSupported = function(){
+      return typeof(Storage) !== "undefined";
     };
 
     // http://stackoverflow.com/questions/2823733/textarea-onchange-detection
@@ -204,12 +208,14 @@
         });
     }
 
-    if (isAuthenticated()) {
+    // var accessToken = getAccessTokenFromUrl();
+    var accessToken = localStorage.getItem("dbAccessToken");
+    if (accessToken) {
       // Create an instance of Dropbox with the access token and use it to
       // fetch and render the files in the users root directory.
       dbx = new Dropbox({
         clientId: CLIENT_ID,
-        accessToken: getAccessTokenFromUrl(),
+        accessToken: accessToken,
       });
 
       refreshNoteList(dbx);
@@ -277,6 +283,8 @@
       // show sign out button
       document.getElementById('sign_out_button').style.display = "block";
 
+      // ----------------------------------------
+      // support shurtcuts
       // http://stackoverflow.com/questions/93695/best-cross-browser-method-to-capture-ctrls-with-jquery
       $(window).bind('keydown', function(event) {
         if (event.ctrlKey || event.metaKey) {
@@ -296,14 +304,31 @@
           }
         }
       });
+      
+      // ----------------------------------------
+      // hide accesstoken from url
       document.location.hash = "";
+      
+      // ----------------------------------------
+      // support session
+      if (!isLocalStorageSupported() ){
+        console.log("local storage is not supported!!");
+      } else if( !localStorage.getItem("dbDbxAccessToken") ) {
+        localStorage.setItem("dbDbxAccessToken", accessToken);
+      } 
+      
+      // ----------------------------------------
+      // support session
+      $('#sign_out_button').on("click", function(e){
+        localStorage.removeItem("dbAccessToken");
+      });
     }
     else {
       // Set the login anchors href using dbx.getAuthenticationUrl()
       dbx = new Dropbox({
         clientId: CLIENT_ID
       });
-      var authUrl = dbx.getAuthenticationUrl('https://dropbox-app-test-kg1992.c9users.io:8081');
+      var authUrl = dbx.getAuthenticationUrl('https://dropbox-app-test-kg1992.c9users.io:8081/auth.html');
       var e = document.getElementById('sign_in_button');
       e.href = authUrl;
       e.style.display = "block";

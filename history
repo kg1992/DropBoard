@@ -1,7 +1,8 @@
 #open ticket
 
-* save session!
- - [plan]: save user access token to cookie. use it until it expires.
+* custom history
+ - [memo]: http://stackoverflow.com/questions/3338642/updating-address-bar-with-new-url-without-hash-or-reloading-the-page
+           you found that you can change history without refreshing the entire page.
 
 * supporting treeview
 
@@ -19,6 +20,10 @@
  - add button looks hedious
  
 #closed ticket
+
+* save session!
+ - [plan]: save user access token to cookie. use it until it expires.
+ 
 * must hide access token
  -> the access token is now hidden by changine document.location.hash
 

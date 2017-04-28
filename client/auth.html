@@ -1,0 +1,25 @@
+<html>
+
+<head>
+
+<!--for authentication url parsing-->
+<script src="/js/index.js"></script>
+<script src="/js/utils.js"></script>
+
+</head>
+
+<body>
+
+<script>
+	if( isAuthenticated() ){
+		var accessToken = getAccessTokenFromUrl();
+		localStorage.setItem("dbAccessToken", accessToken);
+		window.location = "/";
+	} else {
+		document.write("oops! authenticateion failed");
+	}
+</script>
+
+</body>
+
+</html>
