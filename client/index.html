@@ -296,7 +296,7 @@
           }
         }
       });
-      treeview.exposedMethod();
+      document.location.hash = "";
     }
     else {
       // Set the login anchors href using dbx.getAuthenticationUrl()
@@ -307,6 +307,7 @@
       var e = document.getElementById('sign_in_button');
       e.href = authUrl;
       e.style.display = "block";
+      
     }
   </script>
   <script src="/js/index_modal.js"></script>

@@ -25,5 +25,9 @@
 		return removeCount;
 	};
 	
+	Array.prototype.last = function() {
+		return this[this.length-1];
+	};
+	
 	Array.prototype.any = () => this.length != 0;
 })();

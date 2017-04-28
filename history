@@ -1,8 +1,11 @@
 #open ticket
 
+* save session!
+ - [plan]: save user access token to cookie. use it until it expires.
+
 * supporting treeview
 
-* must hide access token
+* supporting dialetcs for markdown library
 
 * support error message display.
  - modal is ready, but not complete.
@@ -16,6 +19,9 @@
  - add button looks hedious
  
 #closed ticket
+* must hide access token
+ -> the access token is now hidden by changine document.location.hash
+
 * there must be shortcut for 'save'
  -> now supported by Ctrl+S.
 
