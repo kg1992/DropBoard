@@ -1,7 +1,7 @@
 // uses express framework
 var express = require('express');
-// // usese path package
-// var path = require('path');
+// usese path package
+var path = require('path');
 // // uses utf8 package
 // var utf8 = require('utf8');
 // // uses markdown parser : https://github.com/evilstreak/markdown-js
@@ -34,7 +34,7 @@ app.use(express.static('client'));
 // app.use(express.urlencoded()); // to support URL-encoded bodies
 
 // Serves main page
-app.get('/', function(req, res) {
+app.get('/*', function(req, res) {
   var client_path = path.join(path.join(__dirname, 'client'), 'index.html');
   res.sendfile(client_path);
 });

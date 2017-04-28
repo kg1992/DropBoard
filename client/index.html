@@ -72,16 +72,18 @@
     /* global $ */
     /* global markdown */
     /* global tocgen */
-    
+    /* global localStorage */
+    /* global Dropbox */
+
     // input argument is string literal of filename.
     // return value is its extension including the dot character.
     //        If the filename does not inclde extension, result will be ""
     function getExtension(filename) {
-        if (filename == null) return "";
-        if (filename == "") return "";
-        var index = filename.lastIndexOf('.');
-        if (index == -1) return "";
-        return filename.substr(index);
+      if (filename == null) return "";
+      if (filename == "") return "";
+      var index = filename.lastIndexOf('.');
+      if (index == -1) return "";
+      return filename.substr(index);
     }
 
     // Dropbox api object
@@ -117,8 +119,8 @@
         $mdView.append($article);
       }
     };
-    
-    var isLocalStorageSupported = function(){
+
+    var isLocalStorageSupported = function() {
       return typeof(Storage) !== "undefined";
     };
 
@@ -138,12 +140,11 @@
     var $si = $('#search_input');
     var onSearchInput = function() {
       var $lis = $('#note_list li');
-      $lis.css('display','none');
-      for( var i = 0; i < $lis.length; ++i )
-      {
+      $lis.css('display', 'none');
+      for (var i = 0; i < $lis.length; ++i) {
         var li = $lis[i];
-        if( li.textContent.toLowerCase().indexOf($si.val()) != -1 )
-          $(li).css('display','block');
+        if (li.textContent.toLowerCase().indexOf($si.val()) != -1)
+          $(li).css('display', 'block');
       }
     };
     if ($si) {
@@ -171,22 +172,33 @@
           lbm.addSelectionChangedHandler(function(model) {
             // on click, show note content
             var item = model.getSelectedItems()[0];
+            var $contentView = $('#content_view');
+            var $mdView = $('#md_view');
             if (item != null) {
               var path = item.name;
               pull_note_content(dbx, /Notes/ + path)
                 .then(function(data) {
-                  var $contentView = $('#content_view');
-                  var $mdView = $('#md_view');
                   switch (getExtension(path)) {
                     case ".txt":
+                      // Change View
                       $contentView.val(data.content);
                       $contentView.css('display', 'block');
                       $mdView.css('display', 'none');
+
+                      // Push History
+                      window.history.pushState(item.name, "DropBoard -" + item.name, "/" + item.name);
+
                       break;
                     case ".md":
+                      // Change View
                       $contentView.val(data.content);
                       $contentView.css('display', 'block');
                       $mdView.css('display', 'block');
+
+                      // Push History
+                      window.history.pushState(item.name, "DropBoard - " + item.name, "/" + item.name);
+
+                      // build md document
                       buildMd();
                       break;
                   }
@@ -194,6 +206,13 @@
                 .catch(function(e) {
                   console.log(e);
                 });
+            }
+            // No items are selected at the moement
+            else {
+              $contentView.css('display', 'none');
+              $mdView.css('display', 'none');
+              
+              window.history.pushState("", "DropBoard", "/");
             }
           });
         });
@@ -313,22 +332,23 @@
           }
         }
       });
-      
+
       // ----------------------------------------
       // hide accesstoken from url
       document.location.hash = "";
-      
+
       // ----------------------------------------
       // support session
-      if (!isLocalStorageSupported() ){
+      if (!isLocalStorageSupported()) {
         console.log("local storage is not supported!!");
-      } else if( !localStorage.getItem("dbDbxAccessToken") ) {
+      }
+      else if (!localStorage.getItem("dbDbxAccessToken")) {
         localStorage.setItem("dbDbxAccessToken", accessToken);
-      } 
-      
+      }
+
       // ----------------------------------------
       // support session
-      $('#sign_out_button').on("click", function(e){
+      $('#sign_out_button').on("click", function(e) {
         localStorage.removeItem("dbAccessToken");
       });
     }
@@ -341,7 +361,6 @@
       var e = document.getElementById('sign_in_button');
       e.href = authUrl;
       e.style.display = "block";
-      
     }
   </script>
   <script src="/js/index_modal.js"></script>
