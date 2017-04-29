@@ -1,5 +1,7 @@
 #open ticket
 
+* supporting treeview
+
 * [bug] - pressing same menu twice quicly causes error, because of the asynchronisity. Must be fixed.
 
 * support raw view
@@ -9,8 +11,6 @@
            you found that you can change history without refreshing the entire page.
  - [progress]: the history stack does get stacked up, but the reactions on 'back', 'go forth' was not what I was expecting.
                I will need to program it by myself
-
-* supporting treeview
 
 * supporting dialetcs for markdown library
 

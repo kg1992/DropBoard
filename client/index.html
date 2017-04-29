@@ -9,6 +9,7 @@
   <link rel="stylesheet" href="/css/index.css">
   <link rel="stylesheet" href="/css/index_modal.css">
   <link rel="stylesheet" href="/css/tocgen.css">
+  <link rel="stylesheet" href="/js/jstree/dist/themes/default/style.min.css">
   <script src="/js/jquery.min.js"></script>
   <script src="/js/bootstrap.min.js"></script>
   <script src="/js/Dropbox-sdk.min.js"></script>
@@ -18,6 +19,7 @@
   <script src="/js/listbox.js"></script>
   <script src="/js/treeview.js"></script>
   <script src="/js/tocgen.js"></script>
+  <script src="/js/jstree/dist/jstree.min.js"></script>
 </head>
 
 <body>
@@ -62,7 +64,9 @@
         <button class="okay">Confirm</button>
       </div>
     </div>
+  </div>
 
+  <div id="jstree">
   </div>
 
   <footer>
@@ -211,7 +215,7 @@
             else {
               $contentView.css('display', 'none');
               $mdView.css('display', 'none');
-              
+
               window.history.pushState("", "DropBoard", "/");
             }
           });
@@ -351,6 +355,70 @@
       $('#sign_out_button').on("click", function(e) {
         localStorage.removeItem("dbAccessToken");
       });
+
+      var buildFolderNode = function( e )
+      {
+        return {
+          text : e.name,
+
+          state : {
+            opened : false
+          },
+
+          children : ['dummy'],
+
+          // data : (e['.tag'] == "folder")
+          // ?
+          // function(node, cb){
+          //   dbx.filesListFolder({path:e.path_lower})
+          //   .then(function(r){
+          //     cb.call(this, r.map(buildFolderNode));
+          //   })
+          //   .catch(function(e) {
+          //     console.log(e);
+          //   });
+          // }
+          // : []
+        };
+      };
+
+      dbx.filesListFolder({
+          path: "" // root folder
+        })
+        .then(function(r) {
+
+          $('#jstree').jstree({
+            core: {
+              data: r.entries.map(buildFolderNode)
+            }
+          });
+
+          // http://stackoverflow.com/questions/20632707/progressive-loading-of-jstree-on-node-open
+          $('#jstree').bind("open_node.jstree", function (event, data) {
+
+            });
+
+          // note : example of entry object:
+          //        {.tag: "folder", name: "Asset", path_lower: "/asset", path_display: "/Asset", id: "id:M7IIkTDz6eIAAAAAAAHhRw"}
+          // r.entries.map(e => {
+          //   var $ul = $('<ul></ul>');
+          //   $ul.append('<li>' + e.name + '</li>');
+          //   var $jstree = $('#jstree')
+          //   $jstree.append($ul);
+          // });
+
+          // $('#jstree').jstree([r].map(_r=>({
+          //   text:"root",
+          //   entries: (_r.entries.map(e => e.name))
+          // })));
+
+          // $('#jstree').on('before_open.jstree', function(node){
+          //   console.log(node);
+          // });
+        })
+        .catch(function(e) {
+          console.log(e);
+        });
     }
     else {
       // Set the login anchors href using dbx.getAuthenticationUrl()

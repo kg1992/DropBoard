@@ -1,7 +1,7 @@
 /* global $ */
 /* global TextDecoder */
 
-(function(window){
+(function(window) {
     // to model note list
     var notes_model = function(entries) {
         // the original source of this data model
@@ -11,51 +11,51 @@
                 return e.name.indexOf('.txt') != -1 ||
                     e.name.indexOf('.md') != -1;
             });
-    
+
         return this;
     };
-    
+
     // // service url
     // var service_url = "https://dropbox-app-test-kg1992.c9users.io:8081"
     //     // current file
     // var current_file = "";
-    
+
     var get_note_name = function(file_name) {
         if (!file_name) throw new 'get_note_name : file_name is null';
-    
+
         var path_end = file_name.lastIndexOf('/');
         if (path_end != -1) {
             file_name = file_name.substr(path_end + 1);
         }
-    
+
         var ext_begin = file_name.lastIndexOf('.');
         if (ext_begin != -1) {
             file_name = file_name.substr(0, ext_begin);
         }
-    
+
         return file_name;
     };
-    
+
     // Expects first argument of 'notes_model'
     // 'out' must be a valid HTTP list element(ul or ol) that can contain 'li' elements.
     // 'click_event' must be provided to support interaction. each entry of 'note_model.entries' will be passed
     window.format_notes_model = function(nm, out, click_event) {
         if (!nm) throw this.name + 'format_notes_model : nm is null';
-    
+
         nm.entries.forEach(function(entry) {
             var $tag = $('<li class=\"menuItem\">' +
                 '<a>' +
                 get_note_name(entry.name) +
                 '</a>' +
                 '</li>').appendTo(out);
-    
+
             // handles click event
             $tag.on("click", function() {
                 if (click_event) click_event(entry);
             });
         });
     }
-    
+
     // function that lists notes
     // when resolved, a 'notes_moodel' object is passed as argument.
     window.pull_note_list = function(dbx, path) {
@@ -72,7 +72,7 @@
                 });
         });
     };
-    
+
     // dbx [object] : Dropbox object
     // path [string] : path to the note file. must begin with \ character to reprsent home
     //
@@ -81,7 +81,7 @@
     //   https://github.com/dropbox/dropbox-sdk-js/blob/1ad47646cfbfaac3ce337602eec9d3722df5dc16/src/download-request.js#L57
     // data.fileBlob is given isntead of data.fileBinary for client side api call
     // http://stackoverflow.com/questions/15341912/how-to-go-from-blob-to-arraybuffer
-    // 
+    //
     //  returns Promise object.
     //  resolved with an object that contains following properties:
     //      {
@@ -117,7 +117,7 @@
                 })
         });
     };
-    
+
     window.push_note_content = function(dbx, path, content) {
         return new Promise(function(resolve, reject) {
             dbx.filesUpload({
@@ -142,10 +142,10 @@
                 });
         });
     };
-    
-    window.push_delete = function(dbx, path){
+
+    window.push_delete = function(dbx, path) {
         return dbx.filesDelete({
             path: path
-            });
+        });
     };
 }(window));
