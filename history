@@ -1,6 +1,5 @@
 #open ticket
-
-* supporting treeview
+* supproting pdf, png view
 
 * [bug] - pressing same menu twice quicly causes error, because of the asynchronisity. Must be fixed.
 
@@ -26,6 +25,9 @@
  - add button looks hedious
  
 #closed ticket
+
+* supporting treeview
+ - treeview navigation is not completely supported. adding, deleting note is disabled at the moment
 
 * save session!
  - [plan]: save user access token to cookie. use it until it expires.

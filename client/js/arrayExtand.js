@@ -29,5 +29,16 @@
 		return this[this.length-1];
 	};
 	
-	Array.prototype.any = () => this.length != 0;
+	Array.prototype.any = function(item) {
+		if( item !== undefined ){
+			for( var i = 0; i < this.length; ++i )
+			{
+				if( this[i] === item )
+					return true;
+			}
+			return false;
+		} else {
+			return this.length != 0;
+		}	
+	}
 })();

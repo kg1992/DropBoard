@@ -4,22 +4,20 @@
 <head>
   <title>DropBoard</title>
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <link rel="stylesheet" href="/css/bootstrap.min.css">
-  <link rel="stylesheet" href="/css/bootstrap-responsive.min.css">
+
+  <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css">
   <link rel="stylesheet" href="/css/index.css">
   <link rel="stylesheet" href="/css/index_modal.css">
   <link rel="stylesheet" href="/css/tocgen.css">
-  <link rel="stylesheet" href="/js/jstree/dist/themes/default/style.min.css">
   <script src="/js/jquery.min.js"></script>
-  <script src="/js/bootstrap.min.js"></script>
+  <!-- Latest compiled JavaScript -->
+  <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js"></script>
   <script src="/js/Dropbox-sdk.min.js"></script>
   <script src="/js/markdown.js"></script>
   <script src="/js/index.js"></script>
   <script src="/js/arrayExtand.js"></script>
-  <script src="/js/listbox.js"></script>
   <script src="/js/treeview.js"></script>
   <script src="/js/tocgen.js"></script>
-  <script src="/js/jstree/dist/jstree.min.js"></script>
 </head>
 
 <body>
@@ -28,12 +26,11 @@
       <h1>DropBoard</h1>
     </header>
     <!-- menu area -->
-    <div class='sidebar_area'>
-      <span>Search: </span> <input id='search_input'></input>
-      <a id="add_button">+</a>
-      <input id="add_name"></input>
-      <nav id="note_list">
-      </nav>
+    <div id='sidebar'>
+      <div id="noteTreeArea">
+        <div id="noteTree">
+        </div>
+      </div>
     </div>
     <!-- content area -->
     <article class="content_area">
@@ -48,7 +45,6 @@
         <a id='save_button'> Save </a>
         <a id='sign_in_button' style="display:none"> Sign in </a>
         <a id='sign_out_button' style="display:none" href="."> Sign out </a>
-        <a id='trash_button'> Trash </a>
       </div>
     </article>
     <!-- Status_bar -->
@@ -64,9 +60,6 @@
         <button class="okay">Confirm</button>
       </div>
     </div>
-  </div>
-
-  <div id="jstree">
   </div>
 
   <footer>
@@ -94,8 +87,18 @@
     var dbx;
     // dropbox applicatoin ID
     var CLIENT_ID = 'x21k12pzkcpb0qa';
-    // list box model object
-    var lbm;
+    // selected note path
+    var selectedPath;
+    // pending expansions
+    var pendingExpansion = [];
+
+    var isAnyNoteOpen = function() {
+      return selectedPath != null;
+    };
+
+    var closeNote = function() {
+      selectedPath = null;
+    };
 
     var writeStatus = function(msg) {
       if (typeof msg == 'string') {
@@ -141,92 +144,30 @@
       area.attachEvent('onpropertychange', onContentViewInput);
     }
 
-    var $si = $('#search_input');
-    var onSearchInput = function() {
-      var $lis = $('#note_list li');
-      $lis.css('display', 'none');
-      for (var i = 0; i < $lis.length; ++i) {
-        var li = $lis[i];
-        if (li.textContent.toLowerCase().indexOf($si.val()) != -1)
-          $(li).css('display', 'block');
-      }
-    };
-    if ($si) {
-      var si = $si.get()[0];
-      if (si.addEventListener) {
-        si.addEventListener('input', onSearchInput);
-      }
-      else if (si.attachEvent) {
-        si.attachEvent('onpropertychange', onSearchInput);
-      }
-    }
+    // ----------------------------------------
+    // Search Support
+    // var $si = $('#search_input');
+    // var onSearchInput = function() {
+    //   var $lis = $('#note_list li');
+    //   $lis.css('display', 'none');
+    //   for (var i = 0; i < $lis.length; ++i) {
+    //     var li = $lis[i];
+    //     if (li.textContent.toLowerCase().indexOf($si.val()) != -1)
+    //       $(li).css('display', 'block');
+    //   }
+    // };
+    // if ($si) {
+    //   var si = $si.get()[0];
+    //   if (si.addEventListener) {
+    //     si.addEventListener('input', onSearchInput);
+    //   }
+    //   else if (si.attachEvent) {
+    //     si.attachEvent('onpropertychange', onSearchInput);
+    //   }
+    // }
 
-    // list notes found in '/Notes' path
-    var refreshNoteList = function(dbx) {
-      if (!dbx) throw "dbx was null ";
-
-      pull_note_list(dbx, "/Notes")
-        .then(function(model) {
-          var entries = model.entries.map(e => {
-            return {
-              name: e.name
-            };
-          });
-          lbm = listbox.create_list_box_from_data(entries, $('#note_list'));
-          lbm.addSelectionChangedHandler(function(model) {
-            // on click, show note content
-            var item = model.getSelectedItems()[0];
-            var $contentView = $('#content_view');
-            var $mdView = $('#md_view');
-            if (item != null) {
-              var path = item.name;
-              pull_note_content(dbx, /Notes/ + path)
-                .then(function(data) {
-                  switch (getExtension(path)) {
-                    case ".txt":
-                      // Change View
-                      $contentView.val(data.content);
-                      $contentView.css('display', 'block');
-                      $mdView.css('display', 'none');
-
-                      // Push History
-                      window.history.pushState(item.name, "DropBoard -" + item.name, "/" + item.name);
-
-                      break;
-                    case ".md":
-                      // Change View
-                      $contentView.val(data.content);
-                      $contentView.css('display', 'block');
-                      $mdView.css('display', 'block');
-
-                      // Push History
-                      window.history.pushState(item.name, "DropBoard - " + item.name, "/" + item.name);
-
-                      // build md document
-                      buildMd();
-                      break;
-                  }
-                })
-                .catch(function(e) {
-                  console.log(e);
-                });
-            }
-            // No items are selected at the moement
-            else {
-              $contentView.css('display', 'none');
-              $mdView.css('display', 'none');
-
-              window.history.pushState("", "DropBoard", "/");
-            }
-          });
-        });
-    };
-
-    var save_selected_note = function() {
-      var selected = lbm.getSelected();
-      var name = selected.name;
-      var path = "/Notes/" + name;
-
+    var saveNote = function(path) {
+      var name = getFileName(path);
       writeStatus('Saving \'' + name + '\'...');
 
       push_note_content(dbx, path, $('#content_view').val())
@@ -240,6 +181,14 @@
         });
     }
 
+    var getFileName = function(path) {
+      var index = selectedPath.lastIndexOf('/');
+      if (index == -1) index = selectedPath.lastIndexOf('\\');
+      if (index == -1)
+        return path;
+      return selectedPath.substr(index);
+    }
+
     // var accessToken = getAccessTokenFromUrl();
     var accessToken = localStorage.getItem("dbAccessToken");
     if (accessToken) {
@@ -250,66 +199,58 @@
         accessToken: accessToken,
       });
 
-      refreshNoteList(dbx);
-
-      $('#save_button').click(save_selected_note);
-
-      // ----------------------------------------
-      // add name input area response
-      $addName = $("#add_name");
-      $addName.on('keyup', function(e) {
-        var name = $addName.val();
-        if (name == "")
-          return;
-        if (e.keyCode == 13) {
-          // http://stackoverflow.com/questions/1531093/how-do-i-get-the-current-date-in-javascript
-          var utc = new Date().toJSON().slice(0, 10).replace(/-/g, '/');
-          push_note_content(dbx, "/Notes/" + name, "new note created at " + utc)
-            .then(function(res) {
-              refreshNoteList(dbx);
-            })
-            .catch(function(e) {
-              console.log(e);
-            });
-          $addName.css('display', 'none');
-        }
-
-        // http://stackoverflow.com/questions/3369593/how-to-detect-escape-key-press-with-javascript-or-jquery
-        else if (e.keyCode == 27) {
-          console.log('user canceled');
-          $addName.css('display', 'none');
-          return;
-        }
+      $('#save_button').click(function(e) {
+        saveNote(selectedPath);
       });
 
-      // ----------------------------------------
-      // add button handler
-      $addButton = $('#add_button');
-      $addButton.on("click", function(e) {
-        $('#add_name').css('display', 'block');
-      });
+      // // ----------------------------------------
+      // // add name input area response
+      // var $addName = $("#add_name");
+      // $addName.on('keyup', function(e) {
+      //   var name = $addName.val();
+      //   if (name == "")
+      //     return;
+      //   if (e.keyCode == 13) {
+      //     // http://stackoverflow.com/questions/1531093/how-do-i-get-the-current-date-in-javascript
+      //     var utc = new Date().toJSON().slice(0, 10).replace(/-/g, '/');
+      //     push_note_content(dbx, "/Notes/" + name, "new note created at " + utc)
+      //       .then(function(res) {
+      //         refreshNoteList(dbx);
+      //       })
+      //       .catch(function(e) {
+      //         console.log(e);
+      //       });
+      //     $addName.css('display', 'none');
+      //   }
 
-      // ----------------------------------------
-      // trash button handler
-      $trashButton = $('#trash_button');
-      $trashButton.on('click', function(e) {
-        var selected = lbm.getSelected();
-        var name = selected.name;
+      //   // http://stackoverflow.com/questions/3369593/how-to-detect-escape-key-press-with-javascript-or-jquery
+      //   else if (e.keyCode == 27) {
+      //     console.log('user canceled');
+      //     $addName.css('display', 'none');
+      //     return;
+      //   }
+      // });
 
-        writeStatus('Trashing \'' + name + '\'...');
+      // // ----------------------------------------
+      // // trash button handler
+      // var $trashButton = $('#trash_button');
+      // $trashButton.on('click', function(e) {
+      //   var name = selected.name;
 
-        push_delete(dbx, "/Notes/" + name)
-          .then(function(data) {
-            $('#content_view').css('display', 'none');
-            $('#md_view').css('display', 'none');
-            refreshNoteList(dbx);
-            writeStatus('\'' + name + '\' has been trashed.');
-          })
-          .catch(function(e) {
-            console.log(e);
-            writeStatus('trashing \'' + name + '\' failed.');
-          });
-      });
+      //   writeStatus('Trashing \'' + name + '\'...');
+
+      //   push_delete(dbx, "/Notes/" + name)
+      //     .then(function(data) {
+      //       $('#content_view').css('display', 'none');
+      //       $('#md_view').css('display', 'none');
+      //       // refreshNoteList(dbx);
+      //       writeStatus('\'' + name + '\' has been trashed.');
+      //     })
+      //     .catch(function(e) {
+      //       console.log(e);
+      //       writeStatus('trashing \'' + name + '\' failed.');
+      //     });
+      // });
 
       // ----------------------------------------
       // show sign out button
@@ -323,7 +264,7 @@
           switch (String.fromCharCode(event.which).toLowerCase()) {
             case 's':
               event.preventDefault();
-              save_selected_note();
+              saveNote(selectedPath);
               break;
               // case 'f':
               //     event.preventDefault();
@@ -356,69 +297,189 @@
         localStorage.removeItem("dbAccessToken");
       });
 
-      var buildFolderNode = function( e )
-      {
-        return {
-          text : e.name,
-
-          state : {
-            opened : false
-          },
-
-          children : ['dummy'],
-
-          // data : (e['.tag'] == "folder")
-          // ?
-          // function(node, cb){
-          //   dbx.filesListFolder({path:e.path_lower})
-          //   .then(function(r){
-          //     cb.call(this, r.map(buildFolderNode));
-          //   })
-          //   .catch(function(e) {
-          //     console.log(e);
-          //   });
-          // }
-          // : []
-        };
+      var isEntryFolder = function(e) {
+        return e['.tag'] == "folder";
       };
 
-      dbx.filesListFolder({
-          path: "" // root folder
-        })
-        .then(function(r) {
+      var openNote = function(dbx, path) {
+        if (isAnyNoteOpen())
+          closeNote();
 
-          $('#jstree').jstree({
-            core: {
-              data: r.entries.map(buildFolderNode)
+        var $mdView = $('#md_view');
+        pull_note_content(dbx, path)
+          .then(function(data) {
+            switch (getExtension(path)) {
+              case ".txt":
+                // Change View
+                $contentView.val(data.content);
+                $contentView.css('display', 'block');
+                $mdView.css('display', 'none');
+
+                // Push History
+                // window.history.pushState(path, "DropBoard -" + path, "/" + path);
+
+                break;
+              case ".md":
+                // Change View
+                $contentView.val(data.content);
+                $contentView.css('display', 'block');
+                $mdView.css('display', 'block');
+
+                // Push History
+                // window.history.pushState(path, "DropBoard - " + path, "/" + path);
+
+                // build md document
+                buildMd();
+                break;
             }
+            selectedPath = path;
+          })
+          .catch(function(e) {
+            console.log(e);
           });
+      };
 
-          // http://stackoverflow.com/questions/20632707/progressive-loading-of-jstree-on-node-open
-          $('#jstree').bind("open_node.jstree", function (event, data) {
+      var buildRowFromEntry = function(e, idx) {
+        // indent
+        var $indent = $('<span></span>');
+        $indent.addClass('treeIndent');
+        $indent.css('width', e.depth * 12 + 'px');
 
-            });
-
-          // note : example of entry object:
-          //        {.tag: "folder", name: "Asset", path_lower: "/asset", path_display: "/Asset", id: "id:M7IIkTDz6eIAAAAAAAHhRw"}
-          // r.entries.map(e => {
-          //   var $ul = $('<ul></ul>');
-          //   $ul.append('<li>' + e.name + '</li>');
-          //   var $jstree = $('#jstree')
-          //   $jstree.append($ul);
-          // });
-
-          // $('#jstree').jstree([r].map(_r=>({
-          //   text:"root",
-          //   entries: (_r.entries.map(e => e.name))
-          // })));
-
-          // $('#jstree').on('before_open.jstree', function(node){
-          //   console.log(node);
-          // });
-        })
-        .catch(function(e) {
-          console.log(e);
+        // expander
+        var $expander = $('<span></span>');
+        $expander.addClass('expander');
+        $expander.addClass("glyphicon glyphicon-expand");
+        $expander.click(function(e) {
+          beginExpand($row);
         });
+        if (!isEntryFolder(e))
+          $expander.css("display", "none");
+
+        // collpaser
+        var $collapser = $('<span></span>');
+        $collapser.addClass('collapser');
+        $collapser.addClass("glyphicon glyphicon-collapse-down");
+        $collapser.click(function(e) {
+          collapse($row);
+        });
+        $collapser.css('display', 'none');
+
+        // buffer
+        var $buffer = $('<span></span');
+        $buffer.addClass('buffer');
+        $buffer.css('width', '16px');
+
+        // icon
+        var $icon = $('<span></span>');
+        $icon.addClass('icon');
+
+        // loading icon
+        var $loadingIcon = $('<span></span');
+        $loadingIcon.addClass('loadingIcon');
+        $loadingIcon.addClass("glyphicon glyphicon-transfer");
+        $loadingIcon.css("display", "none");
+
+        // if folder
+        if (isEntryFolder(e)) {
+          $icon.addClass('glyphicon glyphicon-folder-close');
+          $buffer.css('display', 'none');
+        }
+        // if file
+        else {
+          $icon.addClass('glyphicon glyphicon-file');
+          $buffer.css('display', 'inline-block');
+        }
+
+        // caption
+        var $caption = $('<a>' + e.name + '</a>');
+
+        // row = indent + expander + collapser + icon + caption
+        var $row = $('<div></div>');
+
+        $row.attr('path', e.path_lower);
+        $row.attr('treeDepth', e.depth);
+        $row.append($indent);
+        $row.append($expander);
+        $row.append($collapser);
+        if ($buffer)
+          $row.append($buffer);
+        $row.append($loadingIcon);
+        $row.append($icon);
+        $row.append($caption);
+        if (!isEntryFolder(e)) {
+          $row.on('click', function(event) {
+            openNote(dbx, e.path_lower);
+          });
+        }
+
+        return $row;
+      };
+
+      var collapse = function($node) {
+        // It is in the middle of expansion. Don't allow collapsing.
+        if (pendingExpansion.any($node)) return;
+
+        var $next = $node.next();
+        while ($next != null && $next.attr('treeDepth') > $node.attr('treeDepth')) {
+          var $toRemove = $next;
+          $next = $next.next();
+          $toRemove.remove();
+        }
+        $node.find('.expander').css('display', 'inline');
+        $node.find('.collapser').css('display', 'none');
+      };
+
+      var beginExpand = function($node) {
+        // checks if expansion is already requested
+        if (pendingExpansion.any($node))
+          return;
+
+        // start expansion. 
+        pendingExpansion.push($node);
+
+        var path;
+        var treeDepth;
+        if ($node == null) {
+          var $noteTree = $('#noteTree');
+          $node = $noteTree;
+          path = "";
+          treeDepth = 0;
+        }
+        else {
+          path = $node.attr('path');
+          treeDepth = $node.attr('treeDepth');
+        }
+
+        $node.find('.expander').css('display', 'none');
+        $node.find('.collapser').css('display', 'inline');
+        $node.find('.icon').css('display', 'none');
+        $node.find('.loadingIcon').css('display', 'inline');
+
+        dbx.filesListFolder({
+            path: path
+          })
+          .then(function(r) {
+            r.entries
+              .map(e => Object.assign(e, {
+                depth: Number(treeDepth) + 1
+              }))
+              .map(buildRowFromEntry)
+              .forEach($row => $row.insertAfter($node));
+            $node.find('.expander').css('display', 'none');
+            $node.find('.collapser').css('display', 'inline');
+          })
+          .catch(e => {
+            $node.find('.expander').css('display', 'inline');
+            $node.find('.collapser').css('display', 'none');
+          })
+          .then(e => {
+            pendingExpansion.removeAll($node);
+            $node.find('.icon').css('display', 'inline');
+            $node.find('.loadingIcon').css('display', 'none');
+          });
+      };
+
+      beginExpand();
     }
     else {
       // Set the login anchors href using dbx.getAuthenticationUrl()

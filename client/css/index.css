@@ -4,35 +4,36 @@ body {
 
 .container {
     width: 100%;
-    border: 1px solid gray;
 }
 
-.sidebar_area {
+#sidebar {
     float: left;
     background-color: rgb(200, 200, 200);
+    width : 200px;
+    height: 500px;
+    overflow-y:scroll;
+    overflow-x:hidden;
+    resize:horizontal;
+    white-space:nowrap;
 }
 
-.sidebar_area input {
+#sidebar input {
     margin: 5px;
     max-width: 160px;
 }
 
-.sidebar_area span {
-    margin: 5px;
-}
-
-.sidebar_area li {
-    font: Sans-sarif;
-    /*for debug*/
-    /*border: 1px solid gray;*/
-}
-
-.sidebar_area .selected {
+#sidebar_area .selected {
     background-color: rgb(200, 200, 250);
 }
 
-.sidebar_area ol {
+#sidebar_area ol {
     list-style-type: none;
+}
+
+#noteTreeArea {
+    overflow:hidden;
+    overflow-x:hidden;
+    word-wrap:break-word;
 }
 
 .content_area {
@@ -103,3 +104,16 @@ a:hover {
 #add_name {
     display: none;
 }
+
+.treeIndent {
+    /*http://stackoverflow.com/questions/13223884/maintain-width-of-span-even-if-nothing-in-it*/
+    display: inline-block;
+}
+
+/*#sidebar div div span {*/
+/*    border : 1px solid black;*/
+/*}*/
+
+/*#noteTreeArea .caption{*/
+/*    cursor: pointer;*/
+/*}*/
