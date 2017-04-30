@@ -13,7 +13,7 @@ body {
     height: 500px;
     overflow-y:scroll;
     overflow-x:hidden;
-    resize:horizontal;
+    resize:both;
     white-space:nowrap;
 }
 
