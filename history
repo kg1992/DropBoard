@@ -1,8 +1,6 @@
 #open ticket
 * supproting pdf, png view
 
-* [bug] - pressing same menu twice quicly causes error, because of the asynchronisity. Must be fixed.
-
 * support raw view
 
 * custom history
@@ -25,6 +23,8 @@
  - add button looks hedious
  
 #closed ticket
+
+* [bug] - pressing same menu twice quicly causes error, because of the asynchronisity. Must be fixed.
 
 * supporting treeview
  - treeview navigation is not completely supported. adding, deleting note is disabled at the moment

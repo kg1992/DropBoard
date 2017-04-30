@@ -14,10 +14,10 @@
   <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js"></script>
   <script src="/js/Dropbox-sdk.min.js"></script>
   <script src="/js/markdown.js"></script>
-  <script src="/js/index.js"></script>
   <script src="/js/arrayExtand.js"></script>
   <script src="/js/treeview.js"></script>
   <script src="/js/tocgen.js"></script>
+  <script src="/js/fileBrowser.js"></script>
 </head>
 
 <body>
@@ -28,8 +28,7 @@
     <!-- menu area -->
     <div id='sidebar'>
       <div id="noteTreeArea">
-        <div id="noteTree">
-        </div>
+        <div id="noteTree"></div>
       </div>
     </div>
     <!-- content area -->
@@ -41,10 +40,12 @@
       <div id="md_view">
       </div>
       <div class="menu_arae">
-        <!-- Save Button -->
-        <a id='save_button'> Save </a>
-        <a id='sign_in_button' style="display:none"> Sign in </a>
-        <a id='sign_out_button' style="display:none" href="."> Sign out </a>
+        <nav>
+          <!-- Save Button -->
+          <a id='save_button'> Save </a>
+          <a id='sign_in_button' style="display:none"> Sign in </a>
+          <a id='sign_out_button' style="display:none" href="."> Sign out </a>
+        </nav>
       </div>
     </article>
     <!-- Status_bar -->
@@ -71,6 +72,7 @@
     /* global tocgen */
     /* global localStorage */
     /* global Dropbox */
+    /* global DropboxFileBrowser */
 
     // input argument is string literal of filename.
     // return value is its extension including the dot character.
@@ -82,7 +84,7 @@
       if (index == -1) return "";
       return filename.substr(index);
     }
-
+    
     // Dropbox api object
     var dbx;
     // dropbox applicatoin ID
@@ -170,7 +172,7 @@
       var name = getFileName(path);
       writeStatus('Saving \'' + name + '\'...');
 
-      push_note_content(dbx, path, $('#content_view').val())
+      fb.push_note_content(dbx, path, $('#content_view').val())
         .then(function(res) {
           writeStatus('\'' + name + '\' has been saved.');
         })
@@ -179,7 +181,7 @@
           // // debug log
           // console.log(e);
         });
-    }
+    };
 
     var getFileName = function(path) {
       var index = selectedPath.lastIndexOf('/');
@@ -187,7 +189,7 @@
       if (index == -1)
         return path;
       return selectedPath.substr(index);
-    }
+    };
 
     // var accessToken = getAccessTokenFromUrl();
     var accessToken = localStorage.getItem("dbAccessToken");
@@ -198,6 +200,8 @@
         clientId: CLIENT_ID,
         accessToken: accessToken,
       });
+      
+      var fb = new DropboxFileBrowser(dbx);
 
       $('#save_button').click(function(e) {
         saveNote(selectedPath);
@@ -306,7 +310,7 @@
           closeNote();
 
         var $mdView = $('#md_view');
-        pull_note_content(dbx, path)
+        fb.pull_note_content(path)
           .then(function(data) {
             switch (getExtension(path)) {
               case ".txt":
@@ -455,9 +459,7 @@
         $node.find('.icon').css('display', 'none');
         $node.find('.loadingIcon').css('display', 'inline');
 
-        dbx.filesListFolder({
-            path: path
-          })
+        fb.listFolder(path)
           .then(function(r) {
             r.entries
               .map(e => Object.assign(e, {
