@@ -65,35 +65,7 @@
 		//          content [string] : the actual content of the requested note
 		//      }
 		//
-		this.pull_note_content = function(path) {
-			return new Promise(function(resolve, reject) {
-				if (resolve == null) throw new "\'resolve\' is null";
-				dbx.filesDownload({
-						path: path
-					})
-					.then(function(data) {
-						var fileReader = new FileReader();
-						fileReader.onload = function() {
-							// get the result. result is saved as part of FileReader object
-							var arrayBuffer = this.result;
-							// decode the array buffer
-							// http://stackoverflow.com/questions/8936984/uint8array-to-string-in-javascript
-							var uint8ArrayNew = new Uint8Array(arrayBuffer);
-							var string = new TextDecoder("utf-8").decode(uint8ArrayNew);
-							// resolve on comlete reading and decoding
-							resolve({
-								content: string,
-								type: ".txt",
-							});
-						};
-						// starts the 'file reading' process
-						fileReader.readAsArrayBuffer(data.fileBlob);
-					})
-					.catch(function(e) {
-						reject(e);
-					})
-			});
-		};
+		this.download = path => dbx.filesDownload({path: path});
 
 		this.push_note_content = function(path, content) {
 			return new Promise(function(resolve, reject) {
@@ -127,5 +99,7 @@
 		};
 		
 		this.listFolder = path => dbx.filesListFolder({path:path});
+		
+		this.getDirectLink = path => dbx.filesGetTemporaryLink({path});
 	};
 })(window);

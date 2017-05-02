@@ -12,6 +12,7 @@
     "express": "^3.2.6",
     "jstree": "^3.3.4",
     "markdown": "^0.5.0",
+    "pdfjs-dist": "^1.8.286",
     "socket.io": "~0.9.14",
     "utf8": "^2.1.2"
   }

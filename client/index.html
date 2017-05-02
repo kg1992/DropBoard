@@ -32,13 +32,15 @@
       </div>
     </div>
     <!-- content area -->
-    <article class="content_area">
-      <!-- shows note name (file name) here -->
-      <div id="note_name"></div>
-      <!-- shows content of the note here -->
-      <textarea id="content_view" rows="30" class="boxsizingBorder"></textarea>
-      <div id="md_view">
+    <article class="contentArea">
+      <div class="title"></div>
+      <span class="animatedLoadingIcon glyphicon glyphicon-time"></span>
+      <div class="view" id="imageView">
+        <image></image>
       </div>
+      <!-- shows content of the note here -->
+      <textarea class="view" id="textEditView" rows="30" class="boxsizingBorder"></textarea>
+      <div class="view" id="mdView"></div>
       <div class="menu_arae">
         <nav>
           <!-- Save Button -->
@@ -73,6 +75,7 @@
     /* global localStorage */
     /* global Dropbox */
     /* global DropboxFileBrowser */
+    /* global TextDecoder */
 
     // input argument is string literal of filename.
     // return value is its extension including the dot character.
@@ -84,7 +87,7 @@
       if (index == -1) return "";
       return filename.substr(index);
     }
-    
+
     // Dropbox api object
     var dbx;
     // dropbox applicatoin ID
@@ -92,7 +95,11 @@
     // selected note path
     var selectedPath;
     // pending expansions
-    var pendingExpansion = [];
+    var pendingExpand = [];
+    // pending openNote
+    var pendingOpenNote = [];
+    var imageExtensions = [".png", ".jpg", ".jpeg", ".bmp", ".tif", ".gif", ];
+    var textExtensions = [".txt"];
 
     var isAnyNoteOpen = function() {
       return selectedPath != null;
@@ -109,11 +116,11 @@
     };
 
     var buildMd = function() {
-      var $mdView = $('#md_view');
+      var $mdView = $('#mdView');
       if ($mdView && $mdView.css('display') != 'none') {
         $mdView.empty();
 
-        var $article = $('<div></div>').html(markdown.toHTML($contentView.val()));
+        var $article = $('<div></div>').html(markdown.toHTML($textEditView.val()));
 
         // Generate Table Of Contents
         var article = $article.get()[0];
@@ -134,11 +141,11 @@
     };
 
     // http://stackoverflow.com/questions/2823733/textarea-onchange-detection
-    var $contentView = $('#content_view');
+    var $textEditView = $('#textEditView');
     var onContentViewInput = function() {
       buildMd();
     };
-    var area = $contentView.get()[0];
+    var area = $textEditView.get()[0];
     if (area.addEventListener) {
       area.addEventListener('input', onContentViewInput, false);
     }
@@ -200,7 +207,7 @@
         clientId: CLIENT_ID,
         accessToken: accessToken,
       });
-      
+
       var fb = new DropboxFileBrowser(dbx);
 
       $('#save_button').click(function(e) {
@@ -246,7 +253,7 @@
       //   push_delete(dbx, "/Notes/" + name)
       //     .then(function(data) {
       //       $('#content_view').css('display', 'none');
-      //       $('#md_view').css('display', 'none');
+      //       $('#mdView').css('display', 'none');
       //       // refreshNoteList(dbx);
       //       writeStatus('\'' + name + '\' has been trashed.');
       //     })
@@ -305,42 +312,106 @@
         return e['.tag'] == "folder";
       };
 
-      var openNote = function(dbx, path) {
+      var beginBlobToString = function(blob) {
+        return new Promise(function(resolve, reject) {
+          try {
+            var fileReader = new FileReader();
+            fileReader.onload = function() {
+              try {
+                // get the result. result is saved as part of FileReader object
+                var arrayBuffer = this.result;
+                // decode the array buffer
+                // http://stackoverflow.com/questions/8936984/uint8array-to-string-in-javascript
+                var uint8ArrayNew = new Uint8Array(arrayBuffer);
+                var content = new TextDecoder("utf-8").decode(uint8ArrayNew);
+                // resolve on comlete reading and decoding
+                resolve(content);
+              }
+              catch (e) {
+                reject(e);
+              }
+            };
+            // starts the 'file reading' process
+            fileReader.readAsArrayBuffer(blob);
+          }
+          catch (e) {
+            reject(e);
+          }
+        });
+      };
+
+      var openNote = function(path) {
+        if (pendingOpenNote.any(path))
+          return;
+
+        var $contentArea = $('.contentArea');
+        $contentArea.css('background', 'rgb(200,200,200)');
+        $contentArea.children('.view').css('display', 'none');
+        var $ali = $contentArea.find('.animatedLoadingIcon');
+        $ali.css('display', 'inline-block');
+
+        var $title = $contentArea.find('.title');
+
+        pendingOpenNote.push(path);
+
         if (isAnyNoteOpen())
           closeNote();
 
-        var $mdView = $('#md_view');
-        fb.pull_note_content(path)
-          .then(function(data) {
-            switch (getExtension(path)) {
-              case ".txt":
-                // Change View
-                $contentView.val(data.content);
-                $contentView.css('display', 'block');
-                $mdView.css('display', 'none');
+        fb.getDirectLink(path).then(r=>{
+            $title.html('<a href='+r.link+'>'+path+'</a>');
+          })
+          .catch(console.log);
 
-                // Push History
-                // window.history.pushState(path, "DropBoard -" + path, "/" + path);
+        var doFinally = function() {
+          pendingOpenNote.removeAll(path);
+          $ali.css('display', 'none');
+          $contentArea.css('background', 'white');
+        };
 
-                break;
-              case ".md":
+        var $mdView = $('#mdView');
+        var ext = getExtension(path);
+        if (imageExtensions.any(ext)) {
+          fb.download(path).then(data => {
+              var urlCreator = window.URL || window.webkitURL;
+              var imageUrl = urlCreator.createObjectURL(data.fileBlob);
+              var $imageView = $('#imageView');
+              var $image = $imageView.find('img');
+              $image.attr('src', imageUrl);
+              $imageView.css('display', 'block');
+            })
+            .catch(console.log)
+            .then(doFinally());
+        }
+        else if (textExtensions.any(ext)) {
+          fb.download(path).then(data => {
+              beginBlobToString(data.fileBlob)
+                .then(function(content) {
+                  // Change View
+                  $textEditView.val(content);
+                  $textEditView.css('display', 'block');
+                });
+            })
+            .catch(console.log)
+            .then(doFinally);
+        }
+        else if (ext == ".md") {
+          fb.download(path).then(data => {
+            beginBlobToString(data.fileBlob)
+              .then(function(content) {
                 // Change View
-                $contentView.val(data.content);
-                $contentView.css('display', 'block');
+                $textEditView.val(content);
+                $textEditView.css('display', 'block');
                 $mdView.css('display', 'block');
-
-                // Push History
-                // window.history.pushState(path, "DropBoard - " + path, "/" + path);
 
                 // build md document
                 buildMd();
-                break;
-            }
-            selectedPath = path;
-          })
-          .catch(function(e) {
-            console.log(e);
+              })
+              .catch(console.log)
+              .then(doFinally);
           });
+        } else {
+          doFinally();
+        }
       };
 
       var buildRowFromEntry = function(e, idx) {
@@ -379,8 +450,8 @@
 
         // loading icon
         var $loadingIcon = $('<span></span');
-        $loadingIcon.addClass('loadingIcon');
-        $loadingIcon.addClass("glyphicon glyphicon-transfer");
+        $loadingIcon.addClass('animatedLoadingIcon');
+        $loadingIcon.addClass('glyphicon glyphicon-time');
         $loadingIcon.css("display", "none");
 
         // if folder
@@ -412,7 +483,7 @@
         $row.append($caption);
         if (!isEntryFolder(e)) {
           $row.on('click', function(event) {
-            openNote(dbx, e.path_lower);
+            openNote(e.path_lower);
           });
         }
 
@@ -421,7 +492,7 @@
 
       var collapse = function($node) {
         // It is in the middle of expansion. Don't allow collapsing.
-        if (pendingExpansion.any($node)) return;
+        if (pendingExpand.any($node)) return;
 
         var $next = $node.next();
         while ($next != null && $next.attr('treeDepth') > $node.attr('treeDepth')) {
@@ -435,11 +506,11 @@
 
       var beginExpand = function($node) {
         // checks if expansion is already requested
-        if (pendingExpansion.any($node))
+        if (pendingExpand.any($node))
           return;
 
         // start expansion. 
-        pendingExpansion.push($node);
+        pendingExpand.push($node);
 
         var path;
         var treeDepth;
@@ -457,7 +528,7 @@
         $node.find('.expander').css('display', 'none');
         $node.find('.collapser').css('display', 'inline');
         $node.find('.icon').css('display', 'none');
-        $node.find('.loadingIcon').css('display', 'inline');
+        $node.find('.animatedLoadingIcon').css('display', 'inline');
 
         fb.listFolder(path)
           .then(function(r) {
@@ -475,9 +546,9 @@
             $node.find('.collapser').css('display', 'none');
           })
           .then(e => {
-            pendingExpansion.removeAll($node);
+            pendingExpand.removeAll($node);
             $node.find('.icon').css('display', 'inline');
-            $node.find('.loadingIcon').css('display', 'none');
+            $node.find('.animatedLoadingIcon').css('display', 'none');
           });
       };
 
