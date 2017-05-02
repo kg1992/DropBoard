@@ -118,5 +118,13 @@ var save_content = function() {
 };
 
 ============================================================
-== 
+
+    var getFileName = function(path) {
+      var index = selectedPath.lastIndexOf('/');
+      if (index == -1) index = selectedPath.lastIndexOf('\\');
+      if (index == -1)
+        return path;
+      return selectedPath.substr(index);
+    };
+    
 ============================================================

@@ -18,6 +18,10 @@
   <script src="/js/treeview.js"></script>
   <script src="/js/tocgen.js"></script>
   <script src="/js/fileBrowser.js"></script>
+  <script
+  src="https://code.jquery.com/ui/1.12.1/jquery-ui.js"
+  integrity="sha256-T0Vest3yCU7pafRw9r+settMBX6JkKN06dqBnpQ8d30="
+  crossorigin="anonymous"></script>
 </head>
 
 <body>
@@ -26,11 +30,12 @@
       <h1>DropBoard</h1>
     </header>
     <!-- menu area -->
-    <div id='sidebar'>
+    <div id='sidebar' class = 'ui-widget-content'>
       <div id="noteTreeArea">
         <div id="noteTree"></div>
       </div>
     </div>
+    
     <!-- content area -->
     <article class="contentArea">
       <div class="title"></div>
@@ -50,9 +55,6 @@
         </nav>
       </div>
     </article>
-    <!-- Status_bar -->
-    <div class="status_bar">
-    </div>
     <!-- The Modal -->
     <div id="myModal" class="modal">
       <!-- Modal content -->
@@ -101,18 +103,14 @@
     var imageExtensions = [".png", ".jpg", ".jpeg", ".bmp", ".tif", ".gif", ];
     var textExtensions = [".txt"];
 
+    var $noteTreeArea = $('#noteTreeArea');
+    $('#sidebar').resizable();
     var isAnyNoteOpen = function() {
       return selectedPath != null;
     };
 
     var closeNote = function() {
       selectedPath = null;
-    };
-
-    var writeStatus = function(msg) {
-      if (typeof msg == 'string') {
-        $('.status_bar').text(msg);
-      }
     };
 
     var buildMd = function() {
@@ -128,7 +126,7 @@
         toc.setAttribute("id", "toc");
 
         // Insert Table Of Contents into document
-        $('<div id="toc_here"></div>')
+        $('<span id="toc_here"></span>')
           .append(toc)
           .appendTo($mdView);
 
@@ -176,26 +174,8 @@
     // }
 
     var saveNote = function(path) {
-      var name = getFileName(path);
-      writeStatus('Saving \'' + name + '\'...');
-
       fb.push_note_content(dbx, path, $('#content_view').val())
-        .then(function(res) {
-          writeStatus('\'' + name + '\' has been saved.');
-        })
-        .catch(function(e) {
-          writeStatus('Saving \'' + name + '\'...');
-          // // debug log
-          // console.log(e);
-        });
-    };
-
-    var getFileName = function(path) {
-      var index = selectedPath.lastIndexOf('/');
-      if (index == -1) index = selectedPath.lastIndexOf('\\');
-      if (index == -1)
-        return path;
-      return selectedPath.substr(index);
+        .all(console.log);
     };
 
     // var accessToken = getAccessTokenFromUrl();
@@ -248,18 +228,17 @@
       // $trashButton.on('click', function(e) {
       //   var name = selected.name;
 
-      //   writeStatus('Trashing \'' + name + '\'...');
+      //   console.log('Trashing \'' + name + '\'...');
 
       //   push_delete(dbx, "/Notes/" + name)
       //     .then(function(data) {
       //       $('#content_view').css('display', 'none');
       //       $('#mdView').css('display', 'none');
       //       // refreshNoteList(dbx);
-      //       writeStatus('\'' + name + '\' has been trashed.');
+      //       console.log('\'' + name + '\' has been trashed.');
       //     })
       //     .catch(function(e) {
       //       console.log(e);
-      //       writeStatus('trashing \'' + name + '\' failed.');
       //     });
       // });
 
