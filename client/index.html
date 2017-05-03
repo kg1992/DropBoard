@@ -94,8 +94,13 @@
     var dbx;
     // dropbox applicatoin ID
     var CLIENT_ID = 'x21k12pzkcpb0qa';
-    // selected note path
-    var selectedPath;
+    // selected file.
+    // Only allowd dropboard file to be set.
+    var currentFile;
+    var DropBoardFile = function(path)
+    {
+      this.path = path;
+    };
     // pending expansions
     var pendingExpand = [];
     // pending openFile
@@ -115,17 +120,18 @@
       $codeEditView.width($('#title').width());
       $codeEditView.height($(window).height());
     };
+
     window.onresize = (e) => {
       if( $codeEditView.is(':visible') )
         resizeCodeEditView();
     };
 
     var isAnyNoteOpen = function() {
-      return selectedPath != null;
+      return currentFile == null;
     };
 
     var closeNote = function() {
-      selectedPath = null;
+      currentFile = null;
     };
 
     var buildMd = function() {
@@ -167,9 +173,17 @@
     }
 
     var saveFile = function(path) {
-      fb.push_note_content(dbx, path, $('#content_view').val())
-        .then(console.log)
-        .catch(console.log);
+      if( path == undefined ) throw 'path was undefined';
+      var ext = getExtension(path);
+      if( ext == ".txt" || ext == ".md" ){
+        fb.uploadTextFile(path, $('#textEditView').val())
+          .then(console.log)
+          .catch(console.log);
+      } else if( ext == ".html" ) {
+        fb.uploadTextFile(path, editor.getValue())
+          .then(console.log)
+          .catch(console.log);
+      }
     };
 
     // var accessToken = getAccessTokenFromUrl();
@@ -185,7 +199,7 @@
       var fb = new DropboxFileBrowser(dbx);
 
       $('#save_button').click(function(e) {
-        saveFile(selectedPath);
+        if( currentFile ) saveFile(currentFile.path);
       });
       
       // ----------------------------------------
@@ -201,7 +215,7 @@
           switch (String.fromCharCode(event.which).toLowerCase()) {
             case 's':
               event.preventDefault();
-              saveFile(selectedPath);
+              if( currentFile ) saveFile(currentFile.path);
               break;
               // case 'f':
               //     event.preventDefault();
@@ -281,6 +295,7 @@
 
         if (isAnyNoteOpen())
           closeNote();
+        currentFile = new DropBoardFile(path);
 
         fb.getDirectLink(path).then(r=>{
             $title.html('<a href='+r.link+'>'+path+'</a>');

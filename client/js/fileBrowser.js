@@ -29,27 +29,6 @@
 
 			return file_name;
 		};
-
-		// Expects first argument of 'notes_model'
-		// 'out' must be a valid HTTP list element(ul or ol) that can contain 'li' elements.
-		// 'click_event' must be provided to support interaction. each entry of 'note_model.entries' will be passed
-		this.format_notes_model = function(nm, out, click_event) {
-			if (!nm) throw this.name + 'format_notes_model : nm is null';
-
-			nm.entries.forEach(function(entry) {
-				var $tag = $('<li class=\"menuItem\">' +
-					'<a>' +
-					get_note_name(entry.name) +
-					'</a>' +
-					'</li>').appendTo(out);
-
-				// handles click event
-				$tag.on("click", function() {
-					if (click_event) click_event(entry);
-				});
-			});
-		}
-
 		// dbx [object] : Dropbox object
 		// path [string] : path to the note file. must begin with \ character to reprsent home
 		//
@@ -65,38 +44,22 @@
 		//          content [string] : the actual content of the requested note
 		//      }
 		//
-		this.download = path => dbx.filesDownload({path: path});
+		this.download = path => dbx.filesDownload({
+			path: path
+		});
 
-		this.upload = function(path, content){
+		this.uploadTextFile = function(path, content) {
+			// Name	            Type            Description
+			// contents	        Object          The file contents to be uploaded.
+			// path	            string          Path in the user's Dropbox to save the file.
+			// mode	            FilesWriteMode  Selects what to do if the file already exists.
+			// autorename       boolean		    If there's a conflict, as determined by mode, have the Dropbox server try to autorename the file to avoid conflict.
+			// client_modified  Timestamp	    The value to store as the client_modified timestamp. Dropbox automatically records the time at which the file was written to the Dropbox servers. It can also record an additional timestamp, provided by Dropbox desktop clients, mobile clients, and API apps of when the file was actually created or modified.
+			// mute             boolean         Normally, users are made aware of any file modifications in their Dropbox account via notifications in the client software. If true, this tells the clients that this modification shouldn't result in a user notification.
 			return dbx.filesUpload({
 				path: path,
 				contents: content,
 				mode: 'overwrite'
-			});
-		};
-
-		this.push_note_content = function(path, content) {
-			return new Promise(function(resolve, reject) {
-				dbx.filesUpload({
-						path: path,
-						contents: content,
-						mode: 'overwrite'
-							// Name	            Type            Description
-							// contents	        Object          The file contents to be uploaded.
-							// path	            string          Path in the user's Dropbox to save the file.
-							// mode	            FilesWriteMode  Selects what to do if the file already exists.
-							// autorename	      boolean		      If there's a conflict, as determined by mode, have the Dropbox server try to autorename the file to avoid conflict.
-							// client_modified  Timestamp	      The value to store as the client_modified timestamp. Dropbox automatically records the time at which the file was written to the Dropbox servers. It can also record an additional timestamp, provided by Dropbox desktop clients, mobile clients, and API apps of when the file was actually created or modified.
-							// mute             boolean         Normally, users are made aware of any file modifications in their Dropbox account via notifications in the client software. If true, this tells the clients that this modification shouldn't result in a user notification.
-					})
-					.then(function(data) {
-						if (resolve)
-							resolve(data);
-					})
-					.catch(function(e) {
-						if (reject)
-							reject(e);
-					});
 			});
 		};
 
@@ -105,9 +68,13 @@
 				path: path
 			});
 		};
-		
-		this.listFolder = path => dbx.filesListFolder({path:path});
-		
-		this.getDirectLink = path => dbx.filesGetTemporaryLink({path});
+
+		this.listFolder = path => dbx.filesListFolder({
+			path: path
+		});
+
+		this.getDirectLink = path => dbx.filesGetTemporaryLink({
+			path
+		});
 	};
 })(window);
