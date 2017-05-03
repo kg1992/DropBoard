@@ -100,9 +100,11 @@
     var pendingExpand = [];
     // pending openFile
     var pendingOpenFile = [];
+    // imageExntensino
     var imageExtensions = [".png", ".jpg", ".jpeg", ".bmp", ".tif", ".gif", ];
+    // text file extension
     var textExtensions = [".txt"];
-    
+    // ace editor
     var editor = ace.edit("codeEditView");
     var $codeEditView = $('#codeEditView');
     editor.setTheme("ace/theme/iplastic");
@@ -164,28 +166,6 @@
       area.attachEvent('onpropertychange', onContentViewInput);
     }
 
-    // ----------------------------------------
-    // Search Support
-    // var $si = $('#search_input');
-    // var onSearchInput = function() {
-    //   var $lis = $('#note_list li');
-    //   $lis.css('display', 'none');
-    //   for (var i = 0; i < $lis.length; ++i) {
-    //     var li = $lis[i];
-    //     if (li.textContent.toLowerCase().indexOf($si.val()) != -1)
-    //       $(li).css('display', 'block');
-    //   }
-    // };
-    // if ($si) {
-    //   var si = $si.get()[0];
-    //   if (si.addEventListener) {
-    //     si.addEventListener('input', onSearchInput);
-    //   }
-    //   else if (si.attachEvent) {
-    //     si.attachEvent('onpropertychange', onSearchInput);
-    //   }
-    // }
-
     var saveFile = function(path) {
       fb.push_note_content(dbx, path, $('#content_view').val())
         .then(console.log)
@@ -207,55 +187,7 @@
       $('#save_button').click(function(e) {
         saveFile(selectedPath);
       });
-
-      // // ----------------------------------------
-      // // add name input area response
-      // var $addName = $("#add_name");
-      // $addName.on('keyup', function(e) {
-      //   var name = $addName.val();
-      //   if (name == "")
-      //     return;
-      //   if (e.keyCode == 13) {
-      //     // http://stackoverflow.com/questions/1531093/how-do-i-get-the-current-date-in-javascript
-      //     var utc = new Date().toJSON().slice(0, 10).replace(/-/g, '/');
-      //     push_note_content(dbx, "/Notes/" + name, "new note created at " + utc)
-      //       .then(function(res) {
-      //         refreshNoteList(dbx);
-      //       })
-      //       .catch(function(e) {
-      //         console.log(e);
-      //       });
-      //     $addName.css('display', 'none');
-      //   }
-
-      //   // http://stackoverflow.com/questions/3369593/how-to-detect-escape-key-press-with-javascript-or-jquery
-      //   else if (e.keyCode == 27) {
-      //     console.log('user canceled');
-      //     $addName.css('display', 'none');
-      //     return;
-      //   }
-      // });
-
-      // // ----------------------------------------
-      // // trash button handler
-      // var $trashButton = $('#trash_button');
-      // $trashButton.on('click', function(e) {
-      //   var name = selected.name;
-
-      //   console.log('Trashing \'' + name + '\'...');
-
-      //   push_delete(dbx, "/Notes/" + name)
-      //     .then(function(data) {
-      //       $('#content_view').css('display', 'none');
-      //       $('#mdView').css('display', 'none');
-      //       // refreshNoteList(dbx);
-      //       console.log('\'' + name + '\' has been trashed.');
-      //     })
-      //     .catch(function(e) {
-      //       console.log(e);
-      //     });
-      // });
-
+      
       // ----------------------------------------
       // show sign out button
       

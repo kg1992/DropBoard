@@ -67,6 +67,14 @@
 		//
 		this.download = path => dbx.filesDownload({path: path});
 
+		this.upload = function(path, content){
+			return dbx.filesUpload({
+				path: path,
+				contents: content,
+				mode: 'overwrite'
+			});
+		};
+
 		this.push_note_content = function(path, content) {
 			return new Promise(function(resolve, reject) {
 				dbx.filesUpload({
