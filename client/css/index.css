@@ -11,6 +11,7 @@ body {
     overflow:auto;
     resize: both;
     width: 300px;
+    margin : 0.5em;
 }
 
 .row {
@@ -24,7 +25,7 @@ body {
 
 .contentArea {
     margin-left: 170px;
-    padding: 1em;
+    margin: 0.5em;
     overflow: hidden;
 }
 
@@ -65,6 +66,11 @@ footer {
 
 div button {
     margin: 5px;
+}
+
+.title a{
+    margin-left:20px;
+    line-height: 30px;
 }
 
 .menu_area {

@@ -1,5 +1,5 @@
 #open ticket
-* supproting pdf, png view
+* supprot pdf view 
 
 * support raw view
 
@@ -23,6 +23,12 @@
  - add button looks hedious
  
 #closed ticket
+
+* support html code view
+ - implemented with ace editor
+
+* support image view
+ - done.
 
 * [bug] - pressing same menu twice quicly causes error, because of the asynchronisity. Must be fixed.
 

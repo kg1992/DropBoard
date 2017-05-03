@@ -98,8 +98,8 @@
     var selectedPath;
     // pending expansions
     var pendingExpand = [];
-    // pending openNote
-    var pendingOpenNote = [];
+    // pending openFile
+    var pendingOpenFile = [];
     var imageExtensions = [".png", ".jpg", ".jpeg", ".bmp", ".tif", ".gif", ];
     var textExtensions = [".txt"];
     
@@ -107,14 +107,15 @@
     var $codeEditView = $('#codeEditView');
     editor.setTheme("ace/theme/iplastic");
     editor.getSession().setMode("ace/mode/javascript");
-    var resizeCodeEditView = e => {
+    var resizeCodeEditView = function() {
       var $codeEditView = $('#codeEditView');
-      $codeEditView.width(($(window).width() - $('#sidebar').width() - 40));
+      // $codeEditView.width(($(window).width() - $('#sidebar').width() - 40));
+      $codeEditView.width($('#title').width());
       $codeEditView.height($(window).height());
     };
     window.onresize = (e) => {
       if( $codeEditView.is(':visible') )
-        resizeCodeEditView(e);
+        resizeCodeEditView();
     };
 
     var isAnyNoteOpen = function() {
@@ -185,9 +186,10 @@
     //   }
     // }
 
-    var saveNote = function(path) {
+    var saveFile = function(path) {
       fb.push_note_content(dbx, path, $('#content_view').val())
-        .all(console.log);
+        .then(console.log)
+        .catch(console.log);
     };
 
     // var accessToken = getAccessTokenFromUrl();
@@ -203,7 +205,7 @@
       var fb = new DropboxFileBrowser(dbx);
 
       $('#save_button').click(function(e) {
-        saveNote(selectedPath);
+        saveFile(selectedPath);
       });
 
       // // ----------------------------------------
@@ -267,7 +269,7 @@
           switch (String.fromCharCode(event.which).toLowerCase()) {
             case 's':
               event.preventDefault();
-              saveNote(selectedPath);
+              saveFile(selectedPath);
               break;
               // case 'f':
               //     event.preventDefault();
@@ -332,8 +334,8 @@
         });
       };
 
-      var openNote = function(path) {
-        if (pendingOpenNote.any(path))
+      var openFile = function(path) {
+        if (pendingOpenFile.any(path))
           return;
 
         var $contentArea = $('.contentArea');
@@ -341,10 +343,9 @@
         $contentArea.children('.view').hide();
         var $ali = $contentArea.find('.animatedLoadingIcon');
         $ali.css('display', 'inline-block');
-
         var $title = $contentArea.find('.title');
 
-        pendingOpenNote.push(path);
+        pendingOpenFile.push(path);
 
         if (isAnyNoteOpen())
           closeNote();
@@ -355,7 +356,7 @@
           .catch(console.log);
 
         var doFinally = function() {
-          pendingOpenNote.removeAll(path);
+          pendingOpenFile.removeAll(path);
           $ali.css('display', 'none');
           $contentArea.css('background', 'white');
         };
@@ -487,7 +488,7 @@
         $row.append($caption);
         if (!isEntryFolder(e)) {
           $row.on('click', function(event) {
-            openNote(e.path_lower);
+            openFile(e.path_lower);
           });
         }
 
