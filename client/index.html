@@ -18,10 +18,7 @@
   <script src="/js/treeview.js"></script>
   <script src="/js/tocgen.js"></script>
   <script src="/js/fileBrowser.js"></script>
-  <script
-  src="https://code.jquery.com/ui/1.12.1/jquery-ui.js"
-  integrity="sha256-T0Vest3yCU7pafRw9r+settMBX6JkKN06dqBnpQ8d30="
-  crossorigin="anonymous"></script>
+  <!--<script src="https://code.jquery.com/ui/1.12.1/jquery-ui.js" integrity="sha256-T0Vest3yCU7pafRw9r+settMBX6JkKN06dqBnpQ8d30=" crossorigin="anonymous"></script>-->
 </head>
 
 <body>
@@ -30,10 +27,8 @@
       <h1>DropBoard</h1>
     </header>
     <!-- menu area -->
-    <div id='sidebar' class = 'ui-widget-content'>
-      <div id="noteTreeArea">
-        <div id="noteTree"></div>
-      </div>
+    <div id='sidebar'>
+      <div id="noteTree"></div>
     </div>
     
     <!-- content area -->
@@ -103,8 +98,6 @@
     var imageExtensions = [".png", ".jpg", ".jpeg", ".bmp", ".tif", ".gif", ];
     var textExtensions = [".txt"];
 
-    var $noteTreeArea = $('#noteTreeArea');
-    $('#sidebar').resizable();
     var isAnyNoteOpen = function() {
       return selectedPath != null;
     };
@@ -244,7 +237,8 @@
 
       // ----------------------------------------
       // show sign out button
-      document.getElementById('sign_out_button').style.display = "block";
+      
+      $('#sign_out_button').show();
 
       // ----------------------------------------
       // support shurtcuts
@@ -325,7 +319,7 @@
 
         var $contentArea = $('.contentArea');
         $contentArea.css('background', 'rgb(200,200,200)');
-        $contentArea.children('.view').css('display', 'none');
+        $contentArea.children('.view').hide();
         var $ali = $contentArea.find('.animatedLoadingIcon');
         $ali.css('display', 'inline-block');
 
@@ -359,7 +353,7 @@
               $imageView.css('display', 'block');
             })
             .catch(console.log)
-            .then(doFinally());
+            .then(doFinally);
         }
         else if (textExtensions.any(ext)) {
           fb.download(path).then(data => {
@@ -397,7 +391,10 @@
         // indent
         var $indent = $('<span></span>');
         $indent.addClass('treeIndent');
-        $indent.css('width', e.depth * 12 + 'px');
+        var indentWidth = e.depth * 12;
+        var isFolder = isEntryFolder(e);
+        if( !isFolder ) indentWidth += 16;
+        $indent.width(indentWidth);
 
         // expander
         var $expander = $('<span></span>');
@@ -406,7 +403,7 @@
         $expander.click(function(e) {
           beginExpand($row);
         });
-        if (!isEntryFolder(e))
+        if (!isFolder)
           $expander.css("display", "none");
 
         // collpaser
@@ -417,11 +414,6 @@
           collapse($row);
         });
         $collapser.css('display', 'none');
-
-        // buffer
-        var $buffer = $('<span></span');
-        $buffer.addClass('buffer');
-        $buffer.css('width', '16px');
 
         // icon
         var $icon = $('<span></span>');
@@ -434,31 +426,34 @@
         $loadingIcon.css("display", "none");
 
         // if folder
-        if (isEntryFolder(e)) {
+        if (isFolder) {
           $icon.addClass('glyphicon glyphicon-folder-close');
-          $buffer.css('display', 'none');
         }
         // if file
         else {
           $icon.addClass('glyphicon glyphicon-file');
-          $buffer.css('display', 'inline-block');
         }
 
         // caption
         var $caption = $('<a>' + e.name + '</a>');
-
+        
         // row = indent + expander + collapser + icon + caption
         var $row = $('<div></div>');
-
+        var $w = $('<span class=\'wrapper\'></span>');
         $row.attr('path', e.path_lower);
         $row.attr('treeDepth', e.depth);
-        $row.append($indent);
-        $row.append($expander);
-        $row.append($collapser);
-        if ($buffer)
-          $row.append($buffer);
-        $row.append($loadingIcon);
-        $row.append($icon);
+        $row.addClass('row');
+        //$row.append($indent);
+        $w.append($indent);
+        //$row.append($expander);
+        $w.append($expander);
+        //$row.append($collapser);
+        $w.append($collapser);
+        // $row.append($loadingIcon);
+        $w.append($loadingIcon);
+        // $row.append($icon);
+        $w.append($icon);
+        $row.append($w);
         $row.append($caption);
         if (!isEntryFolder(e)) {
           $row.on('click', function(event) {

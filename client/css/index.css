@@ -8,22 +8,17 @@ body {
 
 #sidebar {
     float: left;
-    width : 200px;
-    overflow-x:hidden;
-    white-space:nowrap;
+    resize: both;
+    width: 300px;
 }
 
-#sidebar input {
-    margin: 5px;
-    max-width: 160px;
+.row {
+    word-wrap: break-word;
+    margin: 0px;
 }
 
-#sidebar_area ol {
-    list-style-type: none;
-}
-
-#noteTreeArea {
-    overflow:hidden;
+.wrapper {
+    float: left;
 }
 
 .contentArea {
@@ -32,8 +27,8 @@ body {
     overflow: hidden;
 }
 
-#textEditView{
-    display:none;
+#textEditView {
+    display: none;
 }
 
 #mdView {
@@ -41,8 +36,7 @@ body {
 }
 
 header {
-    width:100%;
-    padding: 1em;
+    width: 100%;
     text-align: center;
     /*background: black;*/
     /*color: white;*/
@@ -97,35 +91,43 @@ a:hover {
 }
 
 #imageView {
-    display : none;
+    display: none;
 }
 
+
 /*http://stackoverflow.com/questions/16771225/css3-rotate-animation*/
+
 .animatedLoadingIcon {
-    display:none;
-    -webkit-animation:spin 4s linear infinite;
-    -moz-animation:spin 4s linear infinite;
-    animation:spin 4s linear infinite;
+    display: none;
+    -webkit-animation: spin 4s linear infinite;
+    -moz-animation: spin 4s linear infinite;
+    animation: spin 4s linear infinite;
 }
 
 .title {
-    height : 2em;
-    background-color : rgb(200,200,240);
+    height: 2em;
+    background-color: rgb(200, 200, 240);
 }
 
-@-moz-keyframes spin { 100% { -moz-transform: rotate(360deg); } }
-@-webkit-keyframes spin { 100% { -webkit-transform: rotate(360deg); } }
-@keyframes spin { 100% { -webkit-transform: rotate(360deg); transform:rotate(360deg); } }
+@-moz-keyframes spin {
+    100% {
+        -moz-transform: rotate(360deg);
+    }
+}
+
+@-webkit-keyframes spin {
+    100% {
+        -webkit-transform: rotate(360deg);
+    }
+}
+
+@keyframes spin {
+    100% {
+        -webkit-transform: rotate(360deg);
+        transform: rotate(360deg);
+    }
+}
 
 #toc_here {
-    float:right;
-}
-
-.splitter 
-{
-    display:inline-block;
-    background-color:black;
-    cursor:col-resize;
-    width:16px;
-    min-height:200px;
+    float: right;
 }
