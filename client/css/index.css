@@ -8,6 +8,7 @@ body {
 
 #sidebar {
     float: left;
+    overflow:auto;
     resize: both;
     width: 300px;
 }
@@ -50,7 +51,11 @@ footer {
     color: white;
 }
 
-textarea {
+#codeEditView {
+    display:none;
+}
+
+#textEditView {
     height: 100%;
     width: 100%;
     -moz-box-sizing: border-box;
@@ -131,3 +136,10 @@ a:hover {
 #toc_here {
     float: right;
 }
+
+/*#codeView {*/
+/*    width : 500px;*/
+/*    height : 500px;*/
+/*    overflow : auto;*/
+/*    background-color:gray;*/
+/*}*/
