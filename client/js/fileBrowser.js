@@ -14,21 +14,6 @@
 		// 	return this;
 		// };
 
-		var get_note_name = function(file_name) {
-			if (!file_name) throw new 'get_note_name : file_name is null';
-
-			var path_end = file_name.lastIndexOf('/');
-			if (path_end != -1) {
-				file_name = file_name.substr(path_end + 1);
-			}
-
-			var ext_begin = file_name.lastIndexOf('.');
-			if (ext_begin != -1) {
-				file_name = file_name.substr(0, ext_begin);
-			}
-
-			return file_name;
-		};
 		// dbx [object] : Dropbox object
 		// path [string] : path to the note file. must begin with \ character to reprsent home
 		//
@@ -62,19 +47,30 @@
 				mode: 'overwrite'
 			});
 		};
-
-		this.push_delete = function(path) {
-			return dbx.filesDelete({
-				path: path
+		
+		this.create = function(path, content) {
+			return dbx.filesUpload({
+				path: path,
+				contents: content,
+				mode: 'overwrite'
 			});
 		};
 
-		this.listFolder = path => dbx.filesListFolder({
-			path: path
-		});
+		this.delete = function(path) {
+			if( path === undefined ) throw "need to specify argument 'path'";
+			return dbx.filesDelete({path:path});
+		};
 
-		this.getDirectLink = path => dbx.filesGetTemporaryLink({
-			path
-		});
+		this.listFolder = function(path) {
+			if( path === undefined ) throw "need to specify argument 'path'";
+			return dbx.filesListFolder({path: path});
+		};
+
+		this.getDirectLink = function(path) {
+			if( path === undefined ) throw "need to specify argument 'path'";
+			return dbx.filesGetTemporaryLink({path});
+		};
+		
+		
 	};
 })(window);

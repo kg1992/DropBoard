@@ -227,7 +227,25 @@ var save_content = function() {
       // });
 
 ============================================================
+
+var get_note_name = function(file_name) {
+			if (!file_name) throw new 'get_note_name : file_name is null';
+
+			var path_end = file_name.lastIndexOf('/');
+			if (path_end != -1) {
+				file_name = file_name.substr(path_end + 1);
+			}
+
+			var ext_begin = file_name.lastIndexOf('.');
+			if (ext_begin != -1) {
+				file_name = file_name.substr(0, ext_begin);
+			}
+
+			return file_name;
+		};
 ============================================================
 ============================================================
+============================================================
+
 
 

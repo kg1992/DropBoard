@@ -33,7 +33,7 @@
     <div id='sidebar'>
       <div id="noteTree"></div>
     </div>
-    
+
     <!-- content area -->
     <article class="contentArea">
       <div class="title"></div>
@@ -45,24 +45,30 @@
       <textarea class="view" id="textEditView" rows="30" class="boxsizingBorder"></textarea>
       <div class="view" id="codeEditView"></div>
       <div class="view" id="mdView"></div>
-      <div class="menu_arae">
+      <div class="menuArea">
         <nav>
           <!-- Save Button -->
           <a id='save_button'> Save </a>
-          <a id='sign_in_button' style="display:none"> Sign in </a>
-          <a id='sign_out_button' style="display:none" href="."> Sign out </a>
+          <a id='signInButton' style="display:none"> Sign in </a>
+          <a id='signOutButton' style="display:none" href="."> Sign out </a>
         </nav>
       </div>
     </article>
     <!-- The Modal -->
-    <div id="myModal" class="modal">
+    <div id="newModal" class="modal">
       <!-- Modal content -->
       <div class="modal-content">
         <span class="close">&times;</span>
         <p>Note Name?</p>
-        <input class="modal_input" d></input>
-        <button class="okay">Confirm</button>
+        <input></input>
+        <a class="okay">Confirm</a>
+        <a class="cancel">Cancel</a>
       </div>
+    </div>
+    <!-- The ContextMenu -->
+    <div id="contextMenu">
+      <div id="contextMenuDelete" class="contextMenuItem">Delete</div>
+      <div id="contextMenuNew" class="contextMenuItem">New</div>
     </div>
   </div>
 
@@ -97,8 +103,7 @@
     // selected file.
     // Only allowd dropboard file to be set.
     var currentFile;
-    var DropBoardFile = function(path)
-    {
+    var DropBoardFile = function(path) {
       this.path = path;
     };
     // pending expansions
@@ -122,9 +127,85 @@
     };
 
     window.onresize = (e) => {
-      if( $codeEditView.is(':visible') )
+      if ($codeEditView.is(':visible'))
         resizeCodeEditView();
     };
+
+    var $contextMenu = $('#contextMenu');
+
+    var contextMenuTarget;
+
+    function doNewModal() {
+      return new Promise(function(resolve, reject) {
+        try {
+          var $newModal = $('#newModal');
+          $newModal.show();
+          var $okay = $newModal.find('.okay');
+          $okay.on('click', _ => {
+            var $input = $newModal.find('input');
+            var name = $input.val();
+            if (name) {
+              resolve(name);
+              $newModal.hide();
+            }
+          });
+          var $cancel = $newModal.find('.cancel');
+          $cancel.on('click', _ => {
+            reject("User Canceled");
+            $newModal.hide();
+          });
+          var $close = $newModal.find('.close');
+          $close.on('click', _ => {
+            reject("User Canceled");
+            $newModal.hide();
+          });
+        }
+        catch (e) {
+          reject(e);
+          $newModal.hide();
+        }
+      });
+    }
+
+    $('#contextMenuDelete').on('click', _ => {
+      $contextMenu.hide();
+      if (!contextMenuTarget) return;
+      var path = contextMenuTarget.path_lower;
+      if (confirm('Delete "' + path + '"?')) {
+        fb.delete(path)
+          .then(r => {
+            var $row = $('.row[path="' + path + '"]');
+            collapse($row);
+            $row.remove();
+          })
+          .catch(console.log);
+      }
+    });
+
+    $('#contextMenuNew').on('click', _ => {
+      $contextMenu.hide();
+      if (!contextMenuTarget) return;
+      var path = contextMenuTarget.path_lower;
+      doNewModal()
+        .then(name => {
+          fb.create(path + '/' + name)
+          .then(r => {
+            var $contextMenuTarget = $('.row[path="'+path+'"]');
+            r.depth = Number($contextMenuTarget.attr('treeDepth'))+1;
+            var $row = buildRowFromEntry(r);
+            $row.insertAfter($contextMenuTarget);
+          });
+          
+        });
+    });
+
+    $(document).click(function(event) {
+      if (!$(event.target).closest('#contextMenu').length) {
+        if ($('#contextMenu').is(":visible")) {
+          $('#contextMenu').hide();
+        }
+      }
+    })
 
     var isAnyNoteOpen = function() {
       return currentFile == null;
@@ -173,13 +254,14 @@
     }
 
     var saveFile = function(path) {
-      if( path == undefined ) throw 'path was undefined';
+      if (path == undefined) throw 'path was undefined';
       var ext = getExtension(path);
-      if( ext == ".txt" || ext == ".md" ){
+      if (ext == ".txt" || ext == ".md") {
         fb.uploadTextFile(path, $('#textEditView').val())
           .then(console.log)
           .catch(console.log);
-      } else if( ext == ".html" ) {
+      }
+      else if (ext == ".html") {
         fb.uploadTextFile(path, editor.getValue())
           .then(console.log)
           .catch(console.log);
@@ -199,13 +281,13 @@
       var fb = new DropboxFileBrowser(dbx);
 
       $('#save_button').click(function(e) {
-        if( currentFile ) saveFile(currentFile.path);
+        if (currentFile) saveFile(currentFile.path);
       });
-      
+
       // ----------------------------------------
       // show sign out button
-      
-      $('#sign_out_button').show();
+
+      $('#signOutButton').show();
 
       // ----------------------------------------
       // support shurtcuts
@@ -215,7 +297,7 @@
           switch (String.fromCharCode(event.which).toLowerCase()) {
             case 's':
               event.preventDefault();
-              if( currentFile ) saveFile(currentFile.path);
+              if (currentFile) saveFile(currentFile.path);
               break;
               // case 'f':
               //     event.preventDefault();
@@ -244,7 +326,7 @@
 
       // ----------------------------------------
       // support session
-      $('#sign_out_button').on("click", function(e) {
+      $('#signOutButton').on("click", function(e) {
         localStorage.removeItem("dbAccessToken");
       });
 
@@ -297,8 +379,8 @@
           closeNote();
         currentFile = new DropBoardFile(path);
 
-        fb.getDirectLink(path).then(r=>{
-            $title.html('<a href='+r.link+'>'+path+'</a>');
+        fb.getDirectLink(path).then(r => {
+            $title.html('<a href=' + r.link + '>' + path + '</a>');
           })
           .catch(console.log);
 
@@ -349,18 +431,20 @@
               .catch(console.log)
               .then(doFinally);
           });
-        } else if(ext == ".html"){
+        }
+        else if (ext == ".html") {
           fb.download(path).then(data => {
             beginBlobToString(data.fileBlob)
-            .then(function(content) {
-              editor.setValue(content);
-              $codeEditView.show();
-              resizeCodeEditView();
-            })
-            .catch(console.log)
-            .then(doFinally);
+              .then(function(content) {
+                editor.setValue(content);
+                $codeEditView.show();
+                resizeCodeEditView();
+              })
+              .catch(console.log)
+              .then(doFinally);
           });
-        }else {
+        }
+        else {
           doFinally();
         }
       };
@@ -371,7 +455,7 @@
         $indent.addClass('treeIndent');
         var indentWidth = e.depth * 12;
         var isFolder = isEntryFolder(e);
-        if( !isFolder ) indentWidth += 16;
+        if (!isFolder) indentWidth += 16;
         $indent.width(indentWidth);
 
         // expander
@@ -412,32 +496,41 @@
           $icon.addClass('glyphicon glyphicon-file');
         }
 
+        // wrapper
+        var $w = $('<span class=\'wrapper\'></span>');
+        $w.append($indent);
+        $w.append($expander);
+        $w.append($collapser);
+        $w.append($loadingIcon);
+        $w.append($icon);
+
         // caption
         var $caption = $('<a>' + e.name + '</a>');
-        
+
         // row = indent + expander + collapser + icon + caption
         var $row = $('<div></div>');
-        var $w = $('<span class=\'wrapper\'></span>');
+        $row.addClass('row');
         $row.attr('path', e.path_lower);
         $row.attr('treeDepth', e.depth);
-        $row.addClass('row');
-        //$row.append($indent);
-        $w.append($indent);
-        //$row.append($expander);
-        $w.append($expander);
-        //$row.append($collapser);
-        $w.append($collapser);
-        // $row.append($loadingIcon);
-        $w.append($loadingIcon);
-        // $row.append($icon);
-        $w.append($icon);
         $row.append($w);
         $row.append($caption);
+
         if (!isEntryFolder(e)) {
           $row.on('click', function(event) {
             openFile(e.path_lower);
           });
         }
+        $row.on('contextmenu', function(event) {
+          contextMenuTarget = e;
+
+          event.preventDefault();
+          $contextMenu.show();
+
+          $contextMenu.offset({
+            left: event.clientX,
+            top: event.clientY + window.scrollY,
+          });
+        });
 
         return $row;
       };
@@ -512,7 +605,7 @@
         clientId: CLIENT_ID
       });
       var authUrl = dbx.getAuthenticationUrl('https://dropbox-app-test-kg1992.c9users.io:8081/auth.html');
-      var e = document.getElementById('sign_in_button');
+      var e = document.getElementById('signInButton');
       e.href = authUrl;
       e.style.display = "block";
     }

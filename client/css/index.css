@@ -8,9 +8,9 @@ body {
 
 #sidebar {
     float: left;
+    width:280px;
     overflow:auto;
     resize: both;
-    width: 300px;
     margin : 0.5em;
 }
 
@@ -73,7 +73,7 @@ div button {
     line-height: 30px;
 }
 
-.menu_area {
+.menuArea {
     border-top: 2px black;
 }
 
@@ -149,3 +149,19 @@ a:hover {
 /*    overflow : auto;*/
 /*    background-color:gray;*/
 /*}*/
+
+#contextMenu {
+    position: absolute;
+    display: none;
+    background-color:white;
+    border:1px solid black;
+}
+
+.contextMenuItem {
+    padding-left:5px;
+    padding-right:5px;
+}
+
+.contextMenuItem:hover {
+    background-color:rgb(200,200,200);
+}
