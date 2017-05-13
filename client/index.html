@@ -19,6 +19,7 @@
   <script src="/js/treeview.js"></script>
   <script src="/js/tocgen.js"></script>
   <script src="/js/fileBrowser.js"></script>
+  <script src="/js/viewerModules.js"></script>
   <!--<script src="//cdnjs.cloudflare.com/ajax/libs/highlight.js/9.11.0/highlight.min.js"></script>-->
   <!--<script src="https://code.jquery.com/ui/1.12.1/jquery-ui.js" integrity="sha256-T0Vest3yCU7pafRw9r+settMBX6JkKN06dqBnpQ8d30=" crossorigin="anonymous"></script>-->
   <script src="https://cdnjs.cloudflare.com/ajax/libs/ace/1.2.6/ace.js"></script>
@@ -59,7 +60,7 @@
       <!-- Modal content -->
       <div class="modal-content">
         <span class="close">&times;</span>
-        <p>Note Name?</p>
+        <p>File Name?</p>
         <input></input>
         <a class="okay">Confirm</a>
         <a class="cancel">Cancel</a>
@@ -82,8 +83,8 @@
     /* global localStorage */
     /* global Dropbox */
     /* global DropboxFileBrowser */
-    /* global TextDecoder */
     /* global ace */
+    /* global viewerModules */
 
     // input argument is string literal of filename.
     // return value is its extension including the dot character.
@@ -95,7 +96,7 @@
       if (index == -1) return "";
       return filename.substr(index);
     }
-
+    
     // Dropbox api object
     var dbx;
     // dropbox applicatoin ID
@@ -110,10 +111,6 @@
     var pendingExpand = [];
     // pending openFile
     var pendingOpenFile = [];
-    // imageExntensino
-    var imageExtensions = [".png", ".jpg", ".jpeg", ".bmp", ".tif", ".gif", ];
-    // text file extension
-    var textExtensions = [".txt"];
     // ace editor
     var editor = ace.edit("codeEditView");
     var $codeEditView = $('#codeEditView');
@@ -189,13 +186,13 @@
       doNewModal()
         .then(name => {
           fb.create(path + '/' + name)
-          .then(r => {
-            var $contextMenuTarget = $('.row[path="'+path+'"]');
-            r.depth = Number($contextMenuTarget.attr('treeDepth'))+1;
-            var $row = buildRowFromEntry(r);
-            $row.insertAfter($contextMenuTarget);
-          });
-          
+            .then(r => {
+              var $contextMenuTarget = $('.row[path="' + path + '"]');
+              r.depth = Number($contextMenuTarget.attr('treeDepth')) + 1;
+              var $row = buildRowFromEntry(r);
+              $row.insertAfter($contextMenuTarget);
+            });
+
         });
     });
 
@@ -205,7 +202,7 @@
           $('#contextMenu').hide();
         }
       }
-    })
+    });
 
     var isAnyNoteOpen = function() {
       return currentFile == null;
@@ -334,34 +331,6 @@
         return e['.tag'] == "folder";
       };
 
-      var beginBlobToString = function(blob) {
-        return new Promise(function(resolve, reject) {
-          try {
-            var fileReader = new FileReader();
-            fileReader.onload = function() {
-              try {
-                // get the result. result is saved as part of FileReader object
-                var arrayBuffer = this.result;
-                // decode the array buffer
-                // http://stackoverflow.com/questions/8936984/uint8array-to-string-in-javascript
-                var uint8ArrayNew = new Uint8Array(arrayBuffer);
-                var content = new TextDecoder("utf-8").decode(uint8ArrayNew);
-                // resolve on comlete reading and decoding
-                resolve(content);
-              }
-              catch (e) {
-                reject(e);
-              }
-            };
-            // starts the 'file reading' process
-            fileReader.readAsArrayBuffer(blob);
-          }
-          catch (e) {
-            reject(e);
-          }
-        });
-      };
-
       var openFile = function(path) {
         if (pendingOpenFile.any(path))
           return;
@@ -389,62 +358,13 @@
           $ali.css('display', 'none');
           $contentArea.css('background', 'white');
         };
-
-        var $mdView = $('#mdView');
-        var ext = getExtension(path);
-        if (imageExtensions.any(ext)) {
-          fb.download(path).then(data => {
-              var urlCreator = window.URL || window.webkitURL;
-              var imageUrl = urlCreator.createObjectURL(data.fileBlob);
-              var $imageView = $('#imageView');
-              var $image = $imageView.find('img');
-              $image.attr('src', imageUrl);
-              $imageView.css('display', 'block');
-            })
-            .catch(console.log)
-            .then(doFinally);
-        }
-        else if (textExtensions.any(ext)) {
-          fb.download(path).then(data => {
-              beginBlobToString(data.fileBlob)
-                .then(function(content) {
-                  // Change View
-                  $textEditView.val(content);
-                  $textEditView.css('display', 'block');
-                });
-            })
-            .catch(console.log)
-            .then(doFinally);
-        }
-        else if (ext == ".md") {
-          fb.download(path).then(data => {
-            beginBlobToString(data.fileBlob)
-              .then(function(content) {
-                // Change View
-                $textEditView.val(content);
-                $textEditView.css('display', 'block');
-                $mdView.css('display', 'block');
-
-                // build md document
-                buildMd();
-              })
-              .catch(console.log)
-              .then(doFinally);
-          });
-        }
-        else if (ext == ".html") {
-          fb.download(path).then(data => {
-            beginBlobToString(data.fileBlob)
-              .then(function(content) {
-                editor.setValue(content);
-                $codeEditView.show();
-                resizeCodeEditView();
-              })
-              .catch(console.log)
-              .then(doFinally);
-          });
-        }
-        else {
+        
+        var m = viewerModules.firstOrDefault(m => m.checkMatch(path));
+        if( m ){
+          m.beginView(path)
+          .catch(console.log)
+          .then(doFinally);
+        } else {
           doFinally();
         }
       };

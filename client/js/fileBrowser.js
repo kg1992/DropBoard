@@ -1,19 +1,6 @@
 /* global $ */
 (function(window) {
 	window.DropboxFileBrowser = function(dbx) {
-		// // to model note list
-		// var notes_model = function(entries) {
-		// 	// the original source of this data model
-		// 	this.entries = entries
-		// 		// I'd like to keep only txt, md files on the list
-		// 		.filter(function(e) {
-		// 			return e.name.indexOf('.txt') != -1 ||
-		// 				e.name.indexOf('.md') != -1;
-		// 		});
-
-		// 	return this;
-		// };
-
 		// dbx [object] : Dropbox object
 		// path [string] : path to the note file. must begin with \ character to reprsent home
 		//
@@ -70,7 +57,5 @@
 			if( path === undefined ) throw "need to specify argument 'path'";
 			return dbx.filesGetTemporaryLink({path});
 		};
-		
-		
 	};
 })(window);
