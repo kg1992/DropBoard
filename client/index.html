@@ -97,10 +97,13 @@
       return filename.substr(index);
     }
     
+    var publish = false;
+    
     // Dropbox api object
     var dbx;
     // dropbox applicatoin ID
-    var CLIENT_ID = 'x21k12pzkcpb0qa';
+    var CLIENT_ID = 'ns72gcdc07hzzcn';
+    var authReturnUrl = publish ? 'https://www.DropBoard.org' :  'https://dropbox-app-test-kg1992.c9users.io:8081/auth.html';
     // selected file.
     // Only allowd dropboard file to be set.
     var currentFile;
@@ -524,7 +527,7 @@
       dbx = new Dropbox({
         clientId: CLIENT_ID
       });
-      var authUrl = dbx.getAuthenticationUrl('https://dropbox-app-test-kg1992.c9users.io:8081/auth.html');
+      var authUrl = dbx.getAuthenticationUrl(authReturnUrl);
       var e = document.getElementById('signInButton');
       e.href = authUrl;
       e.style.display = "block";
