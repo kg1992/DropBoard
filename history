@@ -1,6 +1,8 @@
 #open ticket
 * supprot pdf view 
 
+* support hex view
+
 * support raw view
 
 * custom history
@@ -23,6 +25,8 @@
  - add button looks hedious
  
 #closed ticket
+
+* support unicode detection or selection
 
 * support html code view
  - implemented with ace editor

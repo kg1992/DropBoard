@@ -35,6 +35,12 @@
       <a href="/">MAIN</a>
       <a href="about.html">ABOUT</a>
       <a href="https://github.com/kg1992/DropBoard">GIT</a>
+      <span> ENCODING : <select>
+        <option value='utf-8'>utf-8</option>
+        <option value='euc-kr'>euc-kr</option>
+        <option value='windows-1251'>windows-1251</option>
+      </select></span>
+
     </nav>
     <!-- menu area -->
     <div id='sidebar'>
@@ -49,7 +55,7 @@
         <image></image>
       </div>
       <!-- shows content of the note here -->
-      <textarea class="view" id="textEditView" rows="30" class="boxsizingBorder"></textarea>
+      <textarea id="textEditView" class="view boxsizingBorder" rows="30"></textarea>
       <div class="view" id="codeEditView"></div>
       <div class="view" id="mdView"></div>
       <div class="menuArea">
@@ -105,11 +111,24 @@
     
     var publish = true;
     
+    var txtEncoding = "utf-8";
+    var $encodeSelect = $('select');
+    $encodeSelect.change(e => {
+      txtEncoding = $encodeSelect.val();
+      
+      var txtEditingEnabled = $textEditView.is(':visible');
+      if (txtEditingEnabled && window.confirm('reload the current file?')) {
+        openFile(currentFile.path);
+      }
+    });
+
     // Dropbox api object
     var dbx;
     // dropbox applicatoin ID
     var CLIENT_ID = 'ns72gcdc07hzzcn';
-    var authReturnUrl = publish ? 'https://www.DropBoard.org/auth.html' :  'https://dropbox-app-test-kg1992.c9users.io:8081/auth.html';
+    
+    var authReturnUrl = publish ? 'https://DropBoard.org/auth.html' : 'https://dropbox-app-test-kg1992.c9users.io:8081/auth.html';
+    
     // selected file.
     // Only allowd dropboard file to be set.
     var currentFile;
@@ -367,14 +386,17 @@
           $ali.css('display', 'none');
           $contentArea.css('background', 'white');
         };
-        
+
         var m = viewerModules.firstOrDefault(m => m.checkMatch(path));
-        if( m ){
+        if (m) {
           m.beginView(path)
-          .catch(console.log)
-          .then(doFinally);
-        } else {
-          doFinally();
+            .catch(console.log)
+            .then(doFinally);
+        }
+        else {
+          viewerModules[0].beginView(path)
+            .catch(console.log)
+            .then(doFinally);
         }
       };
 
@@ -451,6 +473,12 @@
         }
         $row.on('contextmenu', function(event) {
           contextMenuTarget = e;
+          
+          if( !isFolder ) {
+            $('#contextMenuNew').hide();
+          } else {
+            $('#contextMenuNew').show();
+          }
 
           event.preventDefault();
           $contextMenu.show();
@@ -504,6 +532,7 @@
         $node.find('.icon').css('display', 'none');
         $node.find('.animatedLoadingIcon').css('display', 'inline');
 
+        // First list all the entries
         fb.listFolder(path)
           .then(function(r) {
             r.entries

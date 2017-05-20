@@ -1,7 +1,7 @@
 /* global TextDecoder */
 
 (function(window) {
-  var beginBlobToString = function(blob) {
+  var beginBlobToString = function(blob, encoding) {
     return new Promise(function(resolve, reject) {
       try {
         var fileReader = new FileReader();
@@ -12,7 +12,7 @@
             // decode the array buffer
             // http://stackoverflow.com/questions/8936984/uint8array-to-string-in-javascript
             var uint8ArrayNew = new Uint8Array(arrayBuffer);
-            var content = new TextDecoder("utf-8").decode(uint8ArrayNew);
+            var content = new TextDecoder(encoding).decode(uint8ArrayNew);
             // resolve on comlete reading and decoding
             resolve(content);
           }
@@ -59,12 +59,13 @@
 
 		beginView: function(path) {
 			return fb.download(path).then(data => {
-				beginBlobToString(data.fileBlob)
+				beginBlobToString(data.fileBlob, txtEncoding)
 					.then(function(content) {
 						// Change View
 						$textEditView.val(content);
 						$textEditView.css('display', 'block');
-					});
+					})
+					.catch(console.log);
 			});
 		}
 	};
@@ -78,7 +79,7 @@
 
 		beginView: function(path) {
 			return fb.download(path).then(data => {
-				beginBlobToString(data.fileBlob)
+				beginBlobToString(data.fileBlob, txtEncoding)
 					.then(function(content) {
 						var $mdView = $('#mdView');
 
@@ -89,7 +90,8 @@
 
 						// build md document
 						buildMd();
-					});
+					})
+					.catch(console.log);
 			});
 		}
 	};
@@ -103,7 +105,7 @@
 
 		beginView: function(path) {
 			return fb.download(path).then(data => {
-				beginBlobToString(data.fileBlob)
+				beginBlobToString(data.fileBlob, txtEncoding)
 					.then(function(content) {
 						editor.setValue(content);
 						$codeEditView.show();
@@ -113,5 +115,5 @@
 		}
 	};
 
-	window.viewerModules = [imageViewer, txtViewer, mdViewer, htmlViewer];
+	window.viewerModules = [txtViewer, mdViewer, htmlViewer, imageViewer];
 })(window);

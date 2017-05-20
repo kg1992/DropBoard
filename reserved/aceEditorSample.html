@@ -1,0 +1,43 @@
+<html>
+<head>
+<style type="text/css" media="screen">
+    #codeEdit { 
+        position: absolute;
+        top: 0;
+        right: 0;
+        bottom: 0;
+        left: 0;
+    }
+</style>
+</head>
+<body>
+<div class="view" id="codeEdit">function foo(items) {
+          var x = "All this is syntax highlighted";
+          return x;
+      }</div>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/ace/1.2.6/ace.js"></script>
+<script>
+    var obj = {
+        a:function (){
+            return 1;
+        },
+        
+        b:function (){
+            return 2;
+        },
+        
+        c:function (){
+            return 3;
+        }
+    };
+    for( var key in obj ){
+        if( typeof obj[key] == "function" ){
+            console.log(obj[key]);
+        }
+    }
+			var editor = ace.edit("codeEdit");
+      editor.setTheme("ace/theme/iplastic");
+      editor.getSession().setMode("ace/mode/javascript");
+</script>
+</body>
+</html>
