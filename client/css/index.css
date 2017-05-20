@@ -165,3 +165,19 @@ a:hover {
 .contextMenuItem:hover {
     background-color:rgb(200,200,200);
 }
+
+/*http://stackoverflow.com/questions/1027354/need-an-unordered-list-without-any-bullets*/
+
+.mainMenu {
+    margin : 16px;
+}
+
+.mainMenu a {
+    text-decoration: none;
+    color:black;
+    padding:16px;
+}
+
+.mainMenu a:hover{
+    background-color:#eeeeee;
+}
