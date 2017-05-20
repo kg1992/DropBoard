@@ -29,10 +29,6 @@ body {
     overflow: hidden;
 }
 
-#textEditView {
-    display: none;
-}
-
 #mdView {
     display: none;
 }
@@ -57,6 +53,7 @@ footer {
 }
 
 #textEditView {
+    display: none;
     height: 100%;
     width: 100%;
     -moz-box-sizing: border-box;
@@ -180,4 +177,9 @@ a:hover {
 
 .mainMenu a:hover{
     background-color:#eeeeee;
+}
+
+.mainMenu span {
+    color:black;
+    padding:16px;
 }
