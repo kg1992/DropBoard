@@ -215,7 +215,7 @@
     function beginNewFolderModal() {
       return new Promise(function(resolve, reject) {
         try {
-          var $newModal = $('#newModal');
+          var $newModal = $('#newFolderModal');
           $newModal.show();
           var $okay = $newModal.find('.okay');
           $okay.on('click', _ => {
@@ -279,7 +279,8 @@
               }
             });
 
-        });
+        })
+        .catch(console.log);
     });
 
     $('#contextMenuNewFolder').on('click', _ => {
@@ -296,7 +297,8 @@
               var $row = buildRowFromEntry(r);
               $row.insertAfter($contextMenuTarget);
             });
-        });
+        })
+        .catch(console.log);
     });
 
     $(document).click(function(event) {
