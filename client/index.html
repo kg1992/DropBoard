@@ -66,6 +66,7 @@
           <a id='save_button'> Save </a>
           <a id='signInButton' style="display:none"> Sign in </a>
           <a id='signOutButton' style="display:none" href="."> Sign out </a>
+          <a id='logoutFromDropBoxButton' style="display:none" href="https://www.Dropbox.com/logout"> Logout From Dropbox </a>
         </nav>
       </div>
     </article>
@@ -396,6 +397,7 @@
       // show sign out button
 
       $('#signOutButton').show();
+      $('#logoutFromDropBoxButton').show();
 
       // ----------------------------------------
       // support shurtcuts
@@ -435,6 +437,10 @@
       // ----------------------------------------
       // support session
       $('#signOutButton').on("click", function(e) {
+        localStorage.removeItem("dbAccessToken");
+      });
+      
+      $('#logoutFromDropBoxButton').on("click", function(e) {
         localStorage.removeItem("dbAccessToken");
       });
 
