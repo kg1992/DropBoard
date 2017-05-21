@@ -389,12 +389,7 @@
           m.beginView(path)
             .catch(console.log)
             .then(doFinally);
-        }
-        else {
-          viewerModules[0].beginView(path)
-            .catch(console.log)
-            .then(doFinally);
-        }
+        } else doFinally();
       };
 
       var buildRowFromEntry = function(e, idx) {
