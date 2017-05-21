@@ -295,7 +295,13 @@
               var $contextMenuTarget = $('.row[path="' + path + '"]');
               r.depth = Number($contextMenuTarget.attr('treeDepth')) + 1;
               var $row = buildRowFromEntry(r);
-              $row.insertAfter($contextMenuTarget);
+              if( isRowExpanded($contextMenuTarget)){
+                $row.insertAfter($contextMenuTarget);
+              } else {
+                beginExpand($contextMenuTarget)
+                .then(console.log)
+                .catch(console.log);
+              }
             });
         })
         .catch(console.log);
