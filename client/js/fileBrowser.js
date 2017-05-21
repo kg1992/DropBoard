@@ -42,6 +42,11 @@
 				mode: 'overwrite'
 			});
 		};
+		
+		this.createFolder = function(path) {
+			if( path === undefined ) throw "need to specify argument 'path'";
+			return dbx.filesCreateFolder({path:path});
+		};
 
 		this.delete = function(path) {
 			if( path === undefined ) throw "need to specify argument 'path'";

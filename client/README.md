@@ -4,3 +4,4 @@
 ##History
  * 2017.5.14 Released
  * 2017.5.20 Added Main Menu, about page, link to github page, encoding selection for text file.
+ * 2017.5.21 Added New Folder context menu

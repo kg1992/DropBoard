@@ -31,6 +31,8 @@
     <header>
       <h1>DropBoard</h1>
     </header>
+
+    <!-- Main Menu -->
     <nav class='mainMenu'>
       <a href="/">MAIN</a>
       <a href="about.html">ABOUT</a>
@@ -40,9 +42,9 @@
         <option value='euc-kr'>euc-kr</option>
         <option value='windows-1251'>windows-1251</option>
       </select></span>
-
     </nav>
-    <!-- menu area -->
+
+    <!-- Side Bar -->
     <div id='sidebar'>
       <div id="noteTree"></div>
     </div>
@@ -67,21 +69,42 @@
         </nav>
       </div>
     </article>
-    <!-- The Modal -->
+
+
+
+    <!-- 'New' operation Modal Dialogue -->
     <div id="newModal" class="modal">
       <!-- Modal content -->
       <div class="modal-content">
         <span class="close">&times;</span>
         <p>File Name?</p>
         <input></input>
-        <a class="okay">Confirm</a>
-        <a class="cancel">Cancel</a>
+        <p>
+          <a class="okay">Confirm</a>
+          <a class="cancel">Cancel</a>
+        </p>
       </div>
     </div>
+
+    <!-- 'New Folder' operation Modal Dialogue -->
+    <div id="newFolderModal" class="modal">
+      <!-- Modal content -->
+      <div class="modal-content">
+        <span class="close">&times;</span>
+        <p>Folder Name?</p>
+        <input></input>
+        <p>
+          <a class="okay">Confirm</a>
+          <a class="cancel">Cancel</a>
+        </p>
+      </div>
+    </div>
+
     <!-- The ContextMenu -->
     <div id="contextMenu">
       <div id="contextMenuDelete" class="contextMenuItem">Delete</div>
       <div id="contextMenuNew" class="contextMenuItem">New</div>
+      <div id="contextMenuNewFolder" class="contextMenuItem">New Folder</div>
     </div>
   </div>
 
@@ -115,7 +138,7 @@
     var $encodeSelect = $('select');
     $encodeSelect.change(e => {
       txtEncoding = $encodeSelect.val();
-      
+
       var txtEditingEnabled = $textEditView.is(':visible');
       if (txtEditingEnabled && window.confirm('reload the current file?')) {
         openFile(currentFile.path);
@@ -160,7 +183,39 @@
 
     var contextMenuTarget;
 
-    function doNewModal() {
+    function beginNewModal() {
+      return new Promise(function(resolve, reject) {
+        try {
+          var $newModal = $('#newModal');
+          $newModal.show();
+          var $okay = $newModal.find('.okay');
+          $okay.on('click', _ => {
+            var $input = $newModal.find('input');
+            var name = $input.val();
+            if (name) {
+              resolve(name);
+              $newModal.hide();
+            }
+          });
+          var $cancel = $newModal.find('.cancel');
+          $cancel.on('click', _ => {
+            reject("User Canceled");
+            $newModal.hide();
+          });
+          var $close = $newModal.find('.close');
+          $close.on('click', _ => {
+            reject("User Canceled");
+            $newModal.hide();
+          });
+        }
+        catch (e) {
+          reject(e);
+          $newModal.hide();
+        }
+      });
+    }
+
+    function beginNewFolderModal() {
       return new Promise(function(resolve, reject) {
         try {
           var $newModal = $('#newModal');
@@ -211,25 +266,45 @@
       $contextMenu.hide();
       if (!contextMenuTarget) return;
       var path = contextMenuTarget.path_lower;
-      doNewModal()
+      beginNewModal()
         .then(name => {
           fb.create(path + '/' + name)
             .then(r => {
               var $contextMenuTarget = $('.row[path="' + path + '"]');
               r.depth = Number($contextMenuTarget.attr('treeDepth')) + 1;
               var $row = buildRowFromEntry(r);
-              $row.insertAfter($contextMenuTarget);
+              if(isRowExpanded($contextMenuTarget)){
+                $row.insertAfter($contextMenuTarget);
+              } else {
+                beginExpand($contextMenuTarget)
+                .then(console.log)
+                .catch(console.log);
+              }
             });
 
         });
     });
 
+    $('#contextMenuNewFolder').on('click', _ => {
+      $contextMenu.hide();
+      if (!contextMenuTarget) return;
+      var path = contextMenuTarget.path_lower;
+      beginNewFolderModal()
+        .then(name => {
+          fb.createFolder(path + '/' + name)
+            .then(r => {
+              r['.tag'] = 'folder';
+              var $contextMenuTarget = $('.row[path="' + path + '"]');
+              r.depth = Number($contextMenuTarget.attr('treeDepth')) + 1;
+              var $row = buildRowFromEntry(r);
+              $row.insertAfter($contextMenuTarget);
+            });
+        });
+    });
+
     $(document).click(function(event) {
-      if (!$(event.target).closest('#contextMenu').length) {
-        if ($('#contextMenu').is(":visible")) {
-          $('#contextMenu').hide();
-        }
-      }
+      if (!$(event.target).closest('#contextMenu').length && $('#contextMenu').is(":visible"))
+        $('#contextMenu').hide();
     });
 
     var isAnyNoteOpen = function() {
@@ -358,6 +433,11 @@
       var isEntryFolder = function(e) {
         return e['.tag'] == "folder";
       };
+      
+      var isRowExpanded = function($row) {
+        if( $row === undefined ) throw "need to specify argument '$row'";
+        return $row.find('.collapser').is(':visible');
+      };
 
       var openFile = function(path) {
         if (pendingOpenFile.any(path))
@@ -392,7 +472,8 @@
           m.beginView(path)
             .catch(console.log)
             .then(doFinally);
-        } else doFinally();
+        }
+        else doFinally();
       };
 
       // requires 'e' to have 'depth' '.tag' 'path_lower'
@@ -435,7 +516,12 @@
         $loadingIcon.css("display", "none");
 
         // if folder
-        if (isFolder) {
+        if (e.iconSrc) {
+          var $iconImage = $('<image src="' + e.iconSrc + '"></image>').appendTo($icon);
+          $iconImage.width(16);
+          $iconImage.height(16);
+        }
+        else if (isFolder) {
           $icon.addClass('glyphicon glyphicon-folder-close');
         }
         // if file
@@ -469,12 +555,20 @@
         }
         $row.on('contextmenu', function(event) {
           contextMenuTarget = e;
-          
-          if( !isFolder ) {
+
+          if (!isFolder) {
             $('#contextMenuNew').hide();
-          } else {
-            $('#contextMenuNew').show();
+            $('#contextMenuNewFolder').hide();
           }
+          else {
+            $('#contextMenuNew').show();
+            $('#contextMenuNewFolder').show();
+          }
+          
+          if( contextMenuTarget.path_lower == "" )
+            $('#contextMenuDelete').hide();
+          else
+          $('#contextMenuDelete').show();
 
           event.preventDefault();
           $contextMenu.show();
@@ -550,13 +644,14 @@
             $node.find('.animatedLoadingIcon').css('display', 'none');
           });
       };
-      
+
       buildRowFromEntry({
-        'path_lower':'',
-        '.tag':'folder',
-        'name':'DropBox',
-        depth:0
-        },0).insertAfter('#noteTree');
+        'path_lower': '',
+        '.tag': 'folder',
+        'name': 'DropBox',
+        'iconSrc': '/DropboxMono32.png',
+        depth: 0
+      }, 0).insertAfter('#noteTree');
     }
     else {
       // Set the login anchors href using dbx.getAuthenticationUrl()
