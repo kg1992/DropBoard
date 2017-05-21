@@ -432,7 +432,12 @@
         $loadingIcon.css("display", "none");
 
         // if folder
-        if (isFolder) {
+        if( e.iconSrc ){
+          var $iconImage = $('<image src="'+e.iconSrc+'"></image>').appendTo($icon);
+          $iconImage.width(16);
+          $iconImage.height(16);
+        }
+        else if (isFolder) {
           $icon.addClass('glyphicon glyphicon-folder-close');
         }
         // if file
@@ -552,6 +557,7 @@
         'path_lower':'',
         '.tag':'folder',
         'name':'DropBox',
+        'iconSrc':'/DropboxMono32.png',
         depth:0
         },0).insertAfter('#noteTree');
     }
