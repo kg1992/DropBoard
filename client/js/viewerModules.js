@@ -1,4 +1,13 @@
 /* global TextDecoder */
+/* global fb */
+/* global getExtension */
+/* global $ */
+/* global txtEncoding */
+/* global $textEditView */
+/* global buildMd */
+/* global editor */
+/* global $codeEditView */
+/* global resizeCodeEditView */
 
 (function(window) {
   var beginBlobToString = function(blob, encoding) {
@@ -38,7 +47,7 @@
 			return imageExtensions.any(ext);
 		},
 		beginView: function(path) {
-			return fb.download(path).then(data => {
+			return fb.download(path).then(function(data) {
 				var urlCreator = window.URL || window.webkitURL;
 				var imageUrl = urlCreator.createObjectURL(data.fileBlob);
 				var $imageView = $('#imageView');
@@ -58,14 +67,14 @@
 		},
 
 		beginView: function(path) {
-			return fb.download(path).then(data => {
+			return fb.download(path).then(function(data) {
 				beginBlobToString(data.fileBlob, txtEncoding)
 					.then(function(content) {
 						// Change View
 						$textEditView.val(content);
 						$textEditView.css('display', 'block');
 					})
-					.catch(console.log);
+					.catch_(console.log);
 			});
 		}
 	};
@@ -78,7 +87,7 @@
 		},
 
 		beginView: function(path) {
-			return fb.download(path).then(data => {
+			return fb.download(path).then(function(data) {
 				beginBlobToString(data.fileBlob, txtEncoding)
 					.then(function(content) {
 						var $mdView = $('#mdView');
@@ -91,7 +100,7 @@
 						// build md document
 						buildMd();
 					})
-					.catch(console.log);
+					.catch_(console.log);
 			});
 		}
 	};
@@ -104,7 +113,7 @@
 		},
 
 		beginView: function(path) {
-			return fb.download(path).then(data => {
+			return fb.download(path).then(function(data) {
 				beginBlobToString(data.fileBlob, txtEncoding)
 					.then(function(content) {
 						editor.setValue(content);

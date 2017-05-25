@@ -16,9 +16,11 @@
 		//          content [string] : the actual content of the requested note
 		//      }
 		//
-		this.download = path => dbx.filesDownload({
-			path: path
-		});
+		this.download = function(path) {
+			dbx.filesDownload({
+				path: path
+			});
+		};
 
 		this.uploadTextFile = function(path, content) {
 			// Name	            Type            Description
@@ -34,7 +36,7 @@
 				mode: 'overwrite'
 			});
 		};
-		
+
 		this.create = function(path, content) {
 			return dbx.filesUpload({
 				path: path,
@@ -42,25 +44,33 @@
 				mode: 'overwrite'
 			});
 		};
-		
+
 		this.createFolder = function(path) {
-			if( path === undefined ) throw "need to specify argument 'path'";
-			return dbx.filesCreateFolder({path:path});
+			if (path === undefined) throw "need to specify argument 'path'";
+			return dbx.filesCreateFolder({
+				path: path
+			});
 		};
 
-		this.delete = function(path) {
-			if( path === undefined ) throw "need to specify argument 'path'";
-			return dbx.filesDelete({path:path});
+		this.deleteEntry = function(path) {
+			if (path === undefined) throw "need to specify argument 'path'";
+			return dbx.filesDelete({
+				path: path
+			});
 		};
 
 		this.listFolder = function(path) {
-			if( path === undefined ) throw "need to specify argument 'path'";
-			return dbx.filesListFolder({path: path});
+			if (path === undefined) throw "need to specify argument 'path'";
+			return dbx.filesListFolder({
+				path: path
+			});
 		};
 
 		this.getDirectLink = function(path) {
-			if( path === undefined ) throw "need to specify argument 'path'";
-			return dbx.filesGetTemporaryLink({path});
+			if (path === undefined) throw "need to specify argument 'path'";
+			return dbx.filesGetTemporaryLink({
+				path: path
+			});
 		};
 	};
 })(window);

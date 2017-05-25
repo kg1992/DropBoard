@@ -82,7 +82,7 @@
 			}
 			
 			if( Array.isArray(o) || typeof o == "object" )
-				return Object.keys(o).map(key => o[key]);
+				return Object.keys(o).map(function(key) { return o[key]; });
 			else 
 				return [];
 		};
@@ -93,8 +93,8 @@
 			if( children.length != 0 ){
 				// build self
 				$div = $('<div></div>');
-				children.forEach(x => {
-					buildRecursive(x, $div);
+				children.forEach(function(x) {
+					return buildRecursive(x, $div);
 				});
 				$p.append($div);
 			} else {

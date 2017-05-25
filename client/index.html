@@ -10,7 +10,11 @@
   <link rel="stylesheet" href="/css/index.css">
   <link rel="stylesheet" href="/css/index_modal.css">
   <link rel="stylesheet" href="/css/tocgen.css">
-  <script src="/js/jquery.min.js"></script>
+  <!--<script src="/js/jquery.min.js"></script>-->
+  <script
+  src="https://code.jquery.com/jquery-1.11.3.min.js"
+  integrity="sha256-7LkWEzqTdpEfELxcZZlS6wAx5Ff13zZ83lYO2/ujj7g="
+  crossorigin="anonymous"></script>
   <!--<link rel="stylesheet" href="//cdnjs.cloudflare.com/ajax/libs/highlight.js/9.11.0/styles/default.min.css">-->
   <!-- Latest compiled JavaScript -->
   <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js"></script>
@@ -136,7 +140,7 @@
     var publish = false;
     var txtEncoding = "utf-8";
     var $encodeSelect = $('select');
-    $encodeSelect.change(e => {
+    $encodeSelect.change(function(e) {
       txtEncoding = $encodeSelect.val();
 
       var txtEditingEnabled = $textEditView.is(':visible');
@@ -172,7 +176,7 @@
       $codeEditView.height($(window).height());
     };
 
-    window.onresize = (e) => {
+    window.onresize = function(e) {
       if ($codeEditView.is(':visible'))
         resizeCodeEditView();
     };
@@ -187,7 +191,7 @@
           var $newModal = $('#newModal');
           $newModal.show();
           var $okay = $newModal.find('.okay');
-          $okay.on('click', _ => {
+          $okay.on('click', function(_) {
             var $input = $newModal.find('input');
             var name = $input.val();
             if (name) {
@@ -196,12 +200,12 @@
             }
           });
           var $cancel = $newModal.find('.cancel');
-          $cancel.on('click', _ => {
+          $cancel.on('click', function(_) {
             reject("User Canceled");
             $newModal.hide();
           });
           var $close = $newModal.find('.close');
-          $close.on('click', _ => {
+          $close.on('click', function(_) {
             reject("User Canceled");
             $newModal.hide();
           });
@@ -219,7 +223,7 @@
           var $newModal = $('#newFolderModal');
           $newModal.show();
           var $okay = $newModal.find('.okay');
-          $okay.on('click', _ => {
+          $okay.on('click', function(_) {
             var $input = $newModal.find('input');
             var name = $input.val();
             if (name) {
@@ -228,12 +232,12 @@
             }
           });
           var $cancel = $newModal.find('.cancel');
-          $cancel.on('click', _ => {
+          $cancel.on('click', function(_) {
             reject("User Canceled");
             $newModal.hide();
           });
           var $close = $newModal.find('.close');
-          $close.on('click', _ => {
+          $close.on('click', function(_) {
             reject("User Canceled");
             $newModal.hide();
           });
@@ -245,29 +249,29 @@
       });
     }
 
-    $('#contextMenuDelete').on('click', _ => {
+    $('#contextMenuDelete').on('click', function(_) {
       $contextMenu.hide();
       if (!contextMenuTarget) return;
       var path = contextMenuTarget.path_lower;
       if (confirm('Delete "' + path + '"?')) {
-        fb.delete(path)
-          .then(r => {
+          fb.deleteEntry(path)
+          .then(function(r) {
             var $row = $('.row[path="' + path + '"]');
             collapse($row);
             $row.remove();
           })
-          .catch(console.log);
+          .catch_(console.log);
       }
     });
 
-    $('#contextMenuNew').on('click', _ => {
+    $('#contextMenuNew').on('click', function(_) {
       $contextMenu.hide();
       if (!contextMenuTarget) return;
       var path = contextMenuTarget.path_lower;
       beginNewModal()
-        .then(name => {
+        .then(function(name) {
           fb.create(path + '/' + name)
-            .then(r => {
+            .then(function(r) {
               var $contextMenuTarget = $('.row[path="' + path + '"]');
               r.depth = Number($contextMenuTarget.attr('treeDepth')) + 1;
               var $row = buildRowFromEntry(r);
@@ -276,22 +280,22 @@
               } else {
                 beginExpand($contextMenuTarget)
                 .then(console.log)
-                .catch(console.log);
+                .catch_(console.log);
               }
             });
 
         })
-        .catch(console.log);
+        .catch_(console.log);
     });
 
-    $('#contextMenuNewFolder').on('click', _ => {
+    $('#contextMenuNewFolder').on('click', function(_) {
       $contextMenu.hide();
       if (!contextMenuTarget) return;
       var path = contextMenuTarget.path_lower;
       beginNewFolderModal()
-        .then(name => {
+        .then(function(name) {
           fb.createFolder(path + '/' + name)
-            .then(r => {
+            .then(function(r) {
               r['.tag'] = 'folder';
               var $contextMenuTarget = $('.row[path="' + path + '"]');
               r.depth = Number($contextMenuTarget.attr('treeDepth')) + 1;
@@ -301,11 +305,11 @@
               } else {
                 beginExpand($contextMenuTarget)
                 .then(console.log)
-                .catch(console.log);
+                .catch_(console.log);
               }
             });
         })
-        .catch(console.log);
+        .catch_(console.log);
     });
 
     $(document).click(function(event) {
@@ -365,12 +369,12 @@
       if (ext == ".txt" || ext == ".md") {
         fb.uploadTextFile(path, $('#textEditView').val())
           .then(console.log)
-          .catch(console.log);
+          .catch_(console.log);
       }
       else if (ext == ".html") {
         fb.uploadTextFile(path, editor.getValue())
           .then(console.log)
-          .catch(console.log);
+          .catch_(console.log);
       }
     };
 
@@ -467,10 +471,10 @@
           closeNote();
         currentFile = new DropBoardFile(path);
 
-        fb.getDirectLink(path).then(r => {
+        fb.getDirectLink(path).then(function(r) {
             $title.html('<a href=' + r.link + '>' + path + '</a>');
           })
-          .catch(console.log);
+          .catch_(console.log);
 
         var doFinally = function() {
           pendingOpenFile.removeAll(path);
@@ -478,10 +482,12 @@
           $contentArea.css('background', 'white');
         };
 
-        var m = viewerModules.firstOrDefault(m => m.checkMatch(path));
+        var m = viewerModules.firstOrDefault(function(m) {
+          return m.checkMatch(path);
+        });
         if (m) {
           m.beginView(path)
-            .catch(console.log)
+            .catch_(console.log)
             .then(doFinally);
         }
         else doFinally();
@@ -637,19 +643,23 @@
         fb.listFolder(path)
           .then(function(r) {
             r.entries
-              .map(e => Object.assign(e, {
-                depth: Number(treeDepth) + 1
-              }))
+              .map(function(e) {
+                return Object.assign(e, {
+                  depth: Number(treeDepth) + 1
+                });
+              })
               .map(buildRowFromEntry)
-              .forEach($row => $row.insertAfter($node));
+              .forEach(function($row) {
+                $row.insertAfter($node);
+              });
             $node.find('.expander').css('display', 'none');
             $node.find('.collapser').css('display', 'inline');
           })
-          .catch(e => {
+          .catch_(function(e) {
             $node.find('.expander').css('display', 'inline');
             $node.find('.collapser').css('display', 'none');
           })
-          .then(e => {
+          .then(function(e) {
             pendingExpand.removeAll($node);
             $node.find('.icon').css('display', 'inline');
             $node.find('.animatedLoadingIcon').css('display', 'none');
